@@ -89,5 +89,6 @@ engine keeps them on the same side. Details: [references/parties.md](references/
 
 ## Full endpoint details
 
-REST endpoint DTOs (28): [references/endpoints-index.md](references/endpoints-index.md)
+REST endpoint DTOs: [references/endpoints-index.md](references/endpoints-index.md)
 WS contract: [references/ws-events.md](references/ws-events.md)
+Working client code: [examples/javascript.md](examples/javascript.md)

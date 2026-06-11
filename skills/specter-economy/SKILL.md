@@ -88,4 +88,5 @@ with these wallets (see specter-competitions).
 
 ## Full endpoint details
 
-All 33 endpoint DTOs and response examples: [references/endpoints-index.md](references/endpoints-index.md)
+All endpoint DTOs and response examples: [references/endpoints-index.md](references/endpoints-index.md)
+Working client code: [examples/javascript.md](examples/javascript.md)

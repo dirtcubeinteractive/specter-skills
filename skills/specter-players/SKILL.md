@@ -85,5 +85,6 @@ Reads: `player/me/get-friends`, `player/me/get-pending-friend-requests`,
 
 ## Full endpoint details
 
-Request DTOs, optional `attributes`, and response examples for all 43 endpoints:
+Request DTOs, optional `attributes`, and response examples for every endpoint:
 [references/endpoints-index.md](references/endpoints-index.md)
+Working client code: [examples/javascript.md](examples/javascript.md), [examples/unity-csharp.md](examples/unity-csharp.md)

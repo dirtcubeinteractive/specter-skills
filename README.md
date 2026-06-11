@@ -34,6 +34,7 @@ Then just ask Claude things like *"Add Specter email login and a gem currency to
 | `specter-progression` | Tasks/missions/achievements, task rule design, custom events, battle pass, levels |
 | `specter-competitions` | Leaderboards, tournaments, instant battles, prize distribution, schedules |
 | `specter-multiplayer` | Matchmaking, parties, match sessions, full Socket.io event contract |
+| `specter-admin` | Configure the game via admin APIs: projects, currencies, items, tasks, live-ops, members |
 
 ## Maintenance (Specter team)
 

@@ -59,14 +59,12 @@ live-ops windows.
 |---|---|
 | `get-tasks`, `get-missions`, `get-step-series`, `get-time-series` | Catalog of configured content (api-key) |
 | `player/me/get-task-status` | Player's completion state per task (returns `status` and `instanceId` per schedule cycle) |
+| `player/me/get-task-progress` | Numeric progress toward task parameters ("73/100") — use for progress bars |
+| `player/me/get-task-group-status`, `player/me/get-time-series-progress` | Mission/step-series and time-series progress |
 | `achievements/force-complete` | Client-authoritative completion (skip the rules engine — use sparingly, e.g. tutorial steps) |
 | `achievements/grant-reward-by-source` | **The canonical "Claim" call** — server resolves the configured reward; pass `{ id, type: "task", instanceId }` (include `instanceId` for recurring tasks so the right cycle is claimed) |
 | `achievements/grant-rewards`, `-single`, `-batch`, `-by-source-overrides` | Grant flows where the caller specifies reward contents — trusted/server contexts, not a player "Claim" button (a client naming its own reward amounts is a cheating vector) |
 | `rewards` history endpoints | Audit what was granted |
-
-Numeric progress toward parameters ("73/100 clicks") is exposed by `tasks/get-progress` on the
-**v1 API only** (`/v1/client/tasks/get-progress`); v2 exposes completion status, not counters.
-If you need a progress bar, either call the v1 endpoint or track the counter client-side.
 
 Reward claim modes are set per task in the dashboard: **on-claim** (player presses "Claim" →
 call grant) vs automatic. Current platform default in production: on-claim.
@@ -91,3 +89,4 @@ battle passes at signup.
 All 21 endpoint DTOs and response examples: [references/endpoints-index.md](references/endpoints-index.md)
 Task rule JSON semantics: [references/task-rules.md](references/task-rules.md)
 Console walkthrough (event → task → reward, end-to-end verify): [references/dashboard-setup.md](references/dashboard-setup.md)
+Working client code: [examples/javascript.md](examples/javascript.md)

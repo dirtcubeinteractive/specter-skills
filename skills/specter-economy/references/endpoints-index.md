@@ -7,11 +7,12 @@
 |---|---|---|
 | `POST /v2/client/app/get-bundles` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-bundles-v2.md](endpoints/app-get-bundles-v2.md) |
 | `POST /v2/client/app/get-gacha-bundle-config` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-gacha-bundle-config-v2.md](endpoints/app-get-gacha-bundle-config-v2.md) |
+| `POST /v2/client/app/get-goc-random-bots` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-goc-random-bots-v2.md](endpoints/app-get-goc-random-bots-v2.md) |
 | `POST /v2/client/app/get-items` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-items-v2.md](endpoints/app-get-items-v2.md) |
 | `POST /v2/client/app/get-store-categories` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-store-categories-v2.md](endpoints/app-get-store-categories-v2.md) |
 | `POST /v2/client/app/get-store-category-contents` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-store-category-contents-v2.md](endpoints/app-get-store-category-contents-v2.md) |
 | `POST /v2/client/app/get-stores` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-stores-v2.md](endpoints/app-get-stores-v2.md) |
-| `POST /v2/client/app/get-currencies` | - | [get-currencies-v2.md](endpoints/get-currencies-v2.md) |
+| `POST /v2/client/app/get-currencies` | API Key Required (via `GetProjectIdFromApikey`) | [get-currencies-v2.md](endpoints/get-currencies-v2.md) |
 | `POST /v2/client/inventory/add` | User Auth Guard Required | [inventory-add-v2.md](endpoints/inventory-add-v2.md) |
 | `POST /v2/client/inventory/consume-item` | User Auth Guard Required | [inventory-consume-item-v2.md](endpoints/inventory-consume-item-v2.md) |
 | `POST /v2/client/inventory/equip-unequip` | User Auth Guard Required | [inventory-equip-unequip-v2.md](endpoints/inventory-equip-unequip-v2.md) |
@@ -22,9 +23,11 @@
 | `POST /v2/client/player/get-collections` | User Auth Guard Required | [player-get-collections-v2.md](endpoints/player-get-collections-v2.md) |
 | `POST /v2/client/player/get-inventory` | User Auth Guard Required | [player-get-inventory-v2.md](endpoints/player-get-inventory-v2.md) |
 | `POST /v2/client/player/get-rm-wallet-history` | User Auth Guard Required | [player-get-rm-wallet-history-v2.md](endpoints/player-get-rm-wallet-history-v2.md) |
+| `POST /v2/client/player/get-wallet-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-wallet-history-v2.md](endpoints/player-get-wallet-history-v2.md) |
 | `POST /v2/client/player/me/get-collections` | User Auth Guard Required | [player-me-get-collections-v2.md](endpoints/player-me-get-collections-v2.md) |
 | `POST /v2/client/player/me/get-inventory` | User Auth Guard Required | [player-me-get-inventory-v2.md](endpoints/player-me-get-inventory-v2.md) |
 | `POST /v2/client/player/me/get-rm-wallet-history` | User Auth Guard Required | [player-me-get-rm-wallet-history-v2.md](endpoints/player-me-get-rm-wallet-history-v2.md) |
+| `POST /v2/client/player/me/get-wallet-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-wallet-history-v2.md](endpoints/player-me-get-wallet-history-v2.md) |
 | `POST /v2/client/rmg/create-order` | User Auth Guard Required | [rmg-create-order-v2.md](endpoints/rmg-create-order-v2.md) |
 | `POST /v2/client/rmg/execute-deposit` | User Auth Guard Required | [rmg-execute-deposit-v2.md](endpoints/rmg-execute-deposit-v2.md) |
 | `POST /v2/client/rmg/execute-witdrawal` | User Auth Guard Required | [rmg-execute-withdrawal-v2.md](endpoints/rmg-execute-withdrawal-v2.md) |
@@ -35,6 +38,7 @@
 | `POST /v2/client/stores/default-purchase` | User Auth Guard Required | [stores-default-purchase-v2.md](endpoints/stores-default-purchase-v2.md) |
 | `POST /v2/client/wallet/available-conversions` | User Auth Guard Required | [wallet-available-conversions-v2.md](endpoints/wallet-available-conversions-v2.md) |
 | `POST /v2/client/wallet/convert-currency` | User Auth Guard Required | [wallet-convert-currency-v2.md](endpoints/wallet-convert-currency-v2.md) |
+| `POST /v2/client/wallet/get-history` | Bearer Token Required (via `UseUserAuthGuard`) | [wallet-get-history-v2.md](endpoints/wallet-get-history-v2.md) |
 | `POST /v2/client/player/me/get-wallet-balance` | User Auth Guard Required | [wallet-get-my-balance-v2.md](endpoints/wallet-get-my-balance-v2.md) |
 | `POST /v2/client/player/get-wallet-balance` | User Auth Guard Required | [wallet-get-player-balance-v2.md](endpoints/wallet-get-player-balance-v2.md) |
 | `POST /v2/client/wallet/update-balance` | User Auth Guard Required | [wallet-update-balance-v2.md](endpoints/wallet-update-balance-v2.md) |

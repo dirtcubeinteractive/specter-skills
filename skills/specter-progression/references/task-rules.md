@@ -72,8 +72,6 @@ use for simple milestones ("finish the tutorial").
 - For streaks, emit one event per attempt — including failures — or the "last N" window won't
   reflect breaks in the streak.
 - Validation latency is seconds (queue → rules engine → reward grant). UI should poll
-  `player/me/get-task-status` on screen-open, not per-frame.
-- Test rules end-to-end in staging by sending events and watching completion via
-  `player/me/get-task-status`. Aggregated fact values (numeric progress) are exposed by
-  `/v1/client/tasks/get-progress` only — useful while debugging rules even if your game
-  otherwise uses v2.
+  `player/me/get-task-status` / `player/me/get-task-progress` on screen-open, not per-frame.
+- Test rules end-to-end in staging by sending events and watching
+  `player/me/get-task-progress` — it exposes the aggregated fact values the engine sees.

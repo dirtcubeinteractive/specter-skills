@@ -1,0 +1,43 @@
+# Fails when the backend's docs/api drifts from the generated skill references.
+# Requires a repo secret BACKEND_REPO_TOKEN: a fine-grained PAT (or GitHub App token)
+# with read access to dirtcubeinteractive/gamestarz_dashboard_backend.
+name: drift-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # weekly Monday 6:00 UTC safety net
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: dirtcubeinteractive/gamestarz_dashboard_backend
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+          path: backend
+          sparse-checkout: docs/api
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Regenerate references from backend docs
+        run: SPECTER_DOCS_DIR=backend/docs/api node scripts/generate-references.mjs
+
+      - name: Secret linter
+        run: node scripts/lint-secrets.mjs
+
+      - name: Fail on drift
+        run: |
+          if ! git diff --quiet -- skills; then
+            echo "::error::Skill references are out of date with backend docs/api. Run 'npm run generate' and commit."
+            git diff --stat -- skills
+            exit 1
+          fi
+          echo "✓ no drift"

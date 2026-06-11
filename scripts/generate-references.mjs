@@ -23,20 +23,22 @@ const SKILLS_DIR = join(ROOT, 'skills');
 const RULES = [
   [/^(auth|account|friends)-/, 'specter-players'],
   [/^app-get-players/, 'specter-players'],
-  [/^player(-me)?-(get-profile|update-data|get-data|remove-data|upload-icon|get-friends|get-pending-friend-requests|get-sent-friend-requests)/, 'specter-players'],
+  [/^player(-me)?-(get-profile|update-data|get-data|get-single-data|remove-data|upload-icon|get-friends|get-pending-friend-requests|get-sent-friend-requests)/, 'specter-players'],
 
   [/^(wallet|rmg|stores|inventory)-/, 'specter-economy'],
   [/^get-currencies/, 'specter-economy'],
-  [/^app-get-(items|bundles|gacha-bundle-config|store-categories|store-category-contents|stores)/, 'specter-economy'],
-  [/^player(-me)?-get-(rm-wallet-history|inventory|collections)/, 'specter-economy'],
+  [/^app-get-(items|bundles|gacha-bundle-config|store-categories|store-category-contents|stores|goc-random-bots)/, 'specter-economy'],
+  [/^player(-me)?-get-(rm-wallet-history|wallet-history|inventory|collections)/, 'specter-economy'],
 
   [/^(achievements|battlepass|progression)-/, 'specter-progression'],
   [/^get-(tasks|missions|step-series|time-series)/, 'specter-progression'],
   [/^app-get-(battlepasses|progression-systems|markers)/, 'specter-progression'],
-  [/^player(-me)?-get-(task-status|progress)/, 'specter-progression'],
+  [/^player(-me)?-get-(task-status|task-progress|task-group-status|time-series-progress|reward-history|progress)/, 'specter-progression'],
   [/^events-send-custom/, 'specter-progression'],
 
   [/^(leaderboards|competitions?)-/, 'specter-competitions'],
+  [/^(app-get-)?ugc-leaderboards-/, 'specter-competitions'],
+  [/^app-get-ugc-leaderboards/, 'specter-competitions'],
   [/^get-(leaderboards|tournaments|instant-battles)/, 'specter-competitions'],
   [/^app-get-(tournaments|instant-battles)/, 'specter-competitions'],
   [/^player(-me)?-get-(tournament-history|instant-battle-history)/, 'specter-competitions'],
@@ -44,6 +46,7 @@ const RULES = [
 
   [/^(matchmaking|matches|party)-/, 'specter-multiplayer'],
   [/^(app-)?get-matches/, 'specter-multiplayer'],
+  [/^player(-me)?-get-match-history/, 'specter-multiplayer'],
   [/^player-me-get-party-details/, 'specter-multiplayer'],
 
   [/^(app-welcome|get-info|app-get-master-data|get-games|liveops-get-server-time|app-get-document)/, 'specter'],

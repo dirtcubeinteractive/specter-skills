@@ -2,6 +2,8 @@
 
 **Endpoint:** `POST /v2/client/app/get-matches`
 
+**Authentication:** API Key Required (via `GetProjectIdFromApikey`)
+
 ---
 
 ## Request DTO Fields

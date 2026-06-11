@@ -7,6 +7,7 @@
 |---|---|---|
 | `POST /v2/client/app/get-instant-battles` | API Key Required | [app-get-instant-battles-v2.md](endpoints/app-get-instant-battles-v2.md) |
 | `POST /v2/client/app/get-tournaments` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-tournaments-v2.md](endpoints/app-get-tournaments-v2.md) |
+| `POST /v2/client/app/get-ugc-leaderboards` | API Key Required (via `GetProjectIdFromApikey`) — no user token required; this path is whitelisted in `api_validation_middleware` | [app-get-ugc-leaderboards-v2.md](endpoints/app-get-ugc-leaderboards-v2.md) |
 | `POST /v2/client/competition/get-entries` | API Key Required (via `GetProjectIdFromApikey`) | [competition-get-entries-v2.md](endpoints/competition-get-entries-v2.md) |
 | `POST /v2/client/competitions/check-attempts` | User Auth Guard Required | [competitions-check-attempts-v2.md](endpoints/competitions-check-attempts-v2.md) |
 | `POST /v2/client/competitions/enter-rmg-competition` | User Auth Guard Required | [competitions-enter-rmg-competition-v2.md](endpoints/competitions-enter-rmg-competition-v2.md) |
@@ -16,14 +17,20 @@
 | `POST /v2/client/competitions/get-tournament-rankings` | User Auth Guard Required | [competitions-get-tournament-rankings-v2.md](endpoints/competitions-get-tournament-rankings-v2.md) |
 | `POST /v2/client/competitions/get-tournament-results` | User Auth Guard Required | [competitions-get-tournament-results-v2.md](endpoints/competitions-get-tournament-results-v2.md) |
 | `POST /v2/client/competitions/post-score-to-tournament` | User Auth Guard Required | [competitions-post-score-to-tournament-v2.md](endpoints/competitions-post-score-to-tournament-v2.md) |
-| `POST /v2/client/app/get-instant-battles` | - | [get-instant-battles-v2.md](endpoints/get-instant-battles-v2.md) |
-| `POST /v2/client/app/get-leaderboards` | - | [get-leaderboards-v2.md](endpoints/get-leaderboards-v2.md) |
-| `POST /v2/client/app/get-tournaments` | - | [get-tournaments-v2.md](endpoints/get-tournaments-v2.md) |
+| `POST /v2/client/app/get-instant-battles` | API Key Required (via `GetProjectIdFromApikey`) | [get-instant-battles-v2.md](endpoints/get-instant-battles-v2.md) |
+| `POST /v2/client/app/get-leaderboards` | API Key Required (via `GetProjectIdFromApikey`) | [get-leaderboards-v2.md](endpoints/get-leaderboards-v2.md) |
+| `POST /v2/client/app/get-tournaments` | API Key Required (via `GetProjectIdFromApikey`) | [get-tournaments-v2.md](endpoints/get-tournaments-v2.md) |
 | `POST /v2/client/leaderboards/get-rankings` | User Auth Guard Required | [leaderboards-get-rankings-v2.md](endpoints/leaderboards-get-rankings-v2.md) |
 | `POST /v2/client/leaderboards/get-results` | User Auth Guard Required | [leaderboards-get-results-v2.md](endpoints/leaderboards-get-results-v2.md) |
+| `POST /v2/client/leaderboards/post-score` | Bearer Token Required (via `UseUserAuthGuard`) | [leaderboards-post-score-v2.md](endpoints/leaderboards-post-score-v2.md) |
 | `POST /v2/client/liveops/get-competition-schedule-history` | API Key Required (via `GetProjectIdFromApikey`) | [liveops-get-competition-schedule-history-v2.md](endpoints/liveops-get-competition-schedule-history-v2.md) |
 | `POST /v2/client/liveops/get-leaderboard-schedule-history` | API Key Required (via `GetProjectIdFromApikey`) | [liveops-get-leaderboard-schedule-history-v2.md](endpoints/liveops-get-leaderboard-schedule-history-v2.md) |
 | `POST /v2/client/player/get-instant-battle-history` | User Auth Guard Required | [player-get-instant-battle-history-v2.md](endpoints/player-get-instant-battle-history-v2.md) |
 | `POST /v2/client/player/get-tournament-history` | User Auth Guard Required | [player-get-tournament-history-v2.md](endpoints/player-get-tournament-history-v2.md) |
 | `POST /v2/client/player/me/get-instant-battle-history` | User Auth Guard Required | [player-me-get-instant-battle-history-v2.md](endpoints/player-me-get-instant-battle-history-v2.md) |
 | `POST /v2/client/player/me/get-tournament-history` | User Auth Guard Required | [player-me-get-tournament-history-v2.md](endpoints/player-me-get-tournament-history-v2.md) |
+| `POST /v2/client/ugc-leaderboards/get-content-summary` | Bearer Token Required (via `UseUserAuthGuard`) | [ugc-leaderboards-get-content-summary-v2.md](endpoints/ugc-leaderboards-get-content-summary-v2.md) |
+| `POST /v2/client/ugc-leaderboards/get-my-content-feed` | Bearer Token Required (via `UseUserAuthGuard`) | [ugc-leaderboards-get-my-content-feed-v2.md](endpoints/ugc-leaderboards-get-my-content-feed-v2.md) |
+| `POST /v2/client/ugc-leaderboards/get-rankings` | Bearer Token Required (via `UseUserAuthGuard`) | [ugc-leaderboards-get-rankings-v2.md](endpoints/ugc-leaderboards-get-rankings-v2.md) |
+| `POST /v2/client/ugc-leaderboards/get-user-bests` | Bearer Token Required (via `UseUserAuthGuard`) | [ugc-leaderboards-get-user-bests-v2.md](endpoints/ugc-leaderboards-get-user-bests-v2.md) |
+| `POST /v2/client/ugc-leaderboards/post-score` | Bearer Token Required (via `UseUserAuthGuard`) | [ugc-leaderboards-post-score-v2.md](endpoints/ugc-leaderboards-post-score-v2.md) |

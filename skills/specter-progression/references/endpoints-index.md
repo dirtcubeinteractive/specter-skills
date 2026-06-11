@@ -5,7 +5,9 @@
 
 | Endpoint | Auth | Reference |
 |---|---|---|
+| `POST /v2/client/achievements/create-user-task-assignment` | Bearer Token Required (via `UseUserAuthGuard`) | [achievements-create-user-task-assignment-v2.md](endpoints/achievements-create-user-task-assignment-v2.md) |
 | `POST /v2/client/achievements/force-complete` | User Auth Guard Required | [achievements-force-complete-v2.md](endpoints/achievements-force-complete-v2.md) |
+| `POST /v2/client/achievements/get-user-task-assignment` | Bearer Token Required (via `UseUserAuthGuard`) | [achievements-get-user-task-assignment-v2.md](endpoints/achievements-get-user-task-assignment-v2.md) |
 | `POST /v2/client/achievements/grant-reward-batch` | User Auth Guard Required | [achievements-grant-reward-batch-v2.md](endpoints/achievements-grant-reward-batch-v2.md) |
 | `POST /v2/client/achievements/grant-reward-by-source-overrides` | User Auth Guard Required | [achievements-grant-reward-by-source-overrides-v2.md](endpoints/achievements-grant-reward-by-source-overrides-v2.md) |
 | `POST /v2/client/achievements/grant-reward-by-source` | User Auth Guard Required | [achievements-grant-reward-by-source-v2.md](endpoints/achievements-grant-reward-by-source-v2.md) |
@@ -17,12 +19,21 @@
 | `POST /v2/client/battlepass/get-tier-list` | User Auth Guard Required | [battlepass-get-tier-list-v2.md](endpoints/battlepass-get-tier-list-v2.md) |
 | `POST /v2/client/battlepass/unlock-battlepass-tier` | User Auth Guard Required | [battlepass-unlock-tier-v2.md](endpoints/battlepass-unlock-tier-v2.md) |
 | `POST /v2/client/events/send-custom` | User Auth Guard Required | [events-send-custom-v2.md](endpoints/events-send-custom-v2.md) |
-| `POST /v2/client/app/get-missions` | - | [get-missions-v2.md](endpoints/get-missions-v2.md) |
-| `POST /v2/client/app/get-step-series` | - | [get-step-series-v2.md](endpoints/get-step-series-v2.md) |
-| `POST /v2/client/app/get-tasks` | - | [get-tasks-v2.md](endpoints/get-tasks-v2.md) |
-| `POST /v2/client/app/get-time-series` | - | [get-time-series-v2.md](endpoints/get-time-series-v2.md) |
+| `POST /v2/client/app/get-missions` | API Key Required (via `GetProjectIdFromApikey`) | [get-missions-v2.md](endpoints/get-missions-v2.md) |
+| `POST /v2/client/app/get-step-series` | API Key Required (via `GetProjectIdFromApikey`) | [get-step-series-v2.md](endpoints/get-step-series-v2.md) |
+| `POST /v2/client/app/get-tasks` | API Key Required (via `GetProjectIdFromApikey`) | [get-tasks-v2.md](endpoints/get-tasks-v2.md) |
+| `POST /v2/client/app/get-time-series` | API Key Required (via `GetProjectIdFromApikey`) | [get-time-series-v2.md](endpoints/get-time-series-v2.md) |
 | `POST /v2/client/player/get-progress` | User Auth Guard Required | [player-get-progress-v2.md](endpoints/player-get-progress-v2.md) |
+| `POST /v2/client/player/get-reward-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-reward-history-v2.md](endpoints/player-get-reward-history-v2.md) |
+| `POST /v2/client/player/get-task-group-status` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-task-group-status-v2.md](endpoints/player-get-task-group-status-v2.md) |
+| `POST /v2/client/player/get-task-progress` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-task-progress-v2.md](endpoints/player-get-task-progress-v2.md) |
 | `POST /v2/client/player/get-task-status` | User Auth Guard Required | [player-get-task-status-v2.md](endpoints/player-get-task-status-v2.md) |
+| `POST /v2/client/player/get-time-series-progress` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-time-series-progress-v2.md](endpoints/player-get-time-series-progress-v2.md) |
 | `POST /v2/client/player/me/get-progress` | User Auth Guard Required | [player-me-get-progress-v2.md](endpoints/player-me-get-progress-v2.md) |
+| `POST /v2/client/player/me/get-reward-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-reward-history-v2.md](endpoints/player-me-get-reward-history-v2.md) |
+| `POST /v2/client/player/me/get-task-group-status` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-task-group-status-v2.md](endpoints/player-me-get-task-group-status-v2.md) |
+| `POST /v2/client/player/me/get-task-group-status-with-cooldown` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-task-group-status-with-cooldown-v2.md](endpoints/player-me-get-task-group-status-with-cooldown-v2.md) |
+| `POST /v2/client/player/me/get-task-progress` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-task-progress-v2.md](endpoints/player-me-get-task-progress-v2.md) |
 | `POST /v2/client/player/me/get-task-status` | User Auth Guard Required | [player-me-get-task-status-v2.md](endpoints/player-me-get-task-status-v2.md) |
+| `POST /v2/client/player/me/get-time-series-progress` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-time-series-progress-v2.md](endpoints/player-me-get-time-series-progress-v2.md) |
 | `POST /v2/client/progression/update-marker` | User Auth Guard Required | [progression-update-marker-v2.md](endpoints/progression-update-marker-v2.md) |

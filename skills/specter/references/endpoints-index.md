@@ -9,6 +9,6 @@
 | `POST /v2/client/app/get-documents` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-documents-v2.md](endpoints/app-get-documents-v2.md) |
 | `POST /v2/client/app/get-master-data` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-master-data-v2.md](endpoints/app-get-master-data-v2.md) |
 | `POST /v2/client/app/welcome` | API Key Required (via `GetProjectIdFromApikey`) | [app-welcome-v2.md](endpoints/app-welcome-v2.md) |
-| `POST /v2/client/app/get-games` | - | [get-games-v2.md](endpoints/get-games-v2.md) |
-| `POST /v2/client/app/get-info` | - | [get-info-v2.md](endpoints/get-info-v2.md) |
+| `POST /v2/client/app/get-games` | API Key Required (via `GetProjectIdFromApikey`) | [get-games-v2.md](endpoints/get-games-v2.md) |
+| `POST /v2/client/app/get-info` | API Key Required (via `GetProjectIdFromApikey`) | [get-info-v2.md](endpoints/get-info-v2.md) |
 | `POST /v2/client/liveops/get-server-time` | User Auth Guard Required | [liveops-get-server-time-v2.md](endpoints/liveops-get-server-time-v2.md) |

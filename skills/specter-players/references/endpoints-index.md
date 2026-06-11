@@ -37,13 +37,16 @@
 | `POST /v2/client/friends/decline-request` | User Auth Guard Required | [friends-decline-request-v2.md](endpoints/friends-decline-request-v2.md) |
 | `POST /v2/client/friends/remove` | User Auth Guard Required | [friends-remove-v2.md](endpoints/friends-remove-v2.md) |
 | `POST /v2/client/friends/send-request` | User Auth Guard Required | [friends-send-request-v2.md](endpoints/friends-send-request-v2.md) |
+| `POST /v2/client/player/get-data` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-data-v2.md](endpoints/player-get-data-v2.md) |
 | `POST /v2/client/player/get-friends` | User Auth Guard Required | [player-get-friends-v2.md](endpoints/player-get-friends-v2.md) |
 | `POST /v2/client/player/get-profile` | User Auth Guard Required | [player-get-profile-v2.md](endpoints/player-get-profile-v2.md) |
+| `POST /v2/client/player/get-single-data` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-single-data-v2.md](endpoints/player-get-single-data-v2.md) |
 | `POST /v2/client/player/me/get-data` | User Auth Guard Required | [player-me-get-data-v2.md](endpoints/player-me-get-data-v2.md) |
 | `POST /v2/client/player/me/get-friends` | User Auth Guard Required | [player-me-get-friends-v2.md](endpoints/player-me-get-friends-v2.md) |
 | `POST /v2/client/player/me/get-pending-friend-requests` | User Auth Guard Required | [player-me-get-pending-friend-requests-v2.md](endpoints/player-me-get-pending-friend-requests-v2.md) |
 | `POST /v2/client/player/me/get-profile` | User Auth Guard Required | [player-me-get-profile-v2.md](endpoints/player-me-get-profile-v2.md) |
 | `POST /v2/client/player/me/get-sent-friend-requests` | User Auth Guard Required | [player-me-get-sent-friend-requests-v2.md](endpoints/player-me-get-sent-friend-requests-v2.md) |
+| `POST /v2/client/player/me/remove-data` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-remove-data-v2.md](endpoints/player-me-remove-data-v2.md) |
 | `POST /v2/client/player/me/update-data` | User Auth Guard Required | [player-me-update-data-v2.md](endpoints/player-me-update-data-v2.md) |
 | `POST /v2/client/player/me/upload-icon` | User Auth Guard Required | [player-me-upload-icon-v2.md](endpoints/player-me-upload-icon-v2.md) |
 | `POST /v2/client/player/remove-data` | User Auth Guard Required | [player-remove-data-v2.md](endpoints/player-remove-data-v2.md) |

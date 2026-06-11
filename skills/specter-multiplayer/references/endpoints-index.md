@@ -6,7 +6,7 @@
 | Endpoint | Auth | Reference |
 |---|---|---|
 | `POST /v2/client/app/get-matches` | API Key Required (via `GetProjectIdFromApikey`) | [app-get-matches-v2.md](endpoints/app-get-matches-v2.md) |
-| `POST /v2/client/app/get-matches` | - | [get-matches-v2.md](endpoints/get-matches-v2.md) |
+| `POST /v2/client/app/get-matches` | API Key Required (via `GetProjectIdFromApikey`) | [get-matches-v2.md](endpoints/get-matches-v2.md) |
 | `POST /v2/client/matches/create-session` | User Auth Guard Required | [matches-create-session-v2.md](endpoints/matches-create-session-v2.md) |
 | `POST /v2/client/matches/end-session` | User Auth Guard Required | [matches-end-session-v2.md](endpoints/matches-end-session-v2.md) |
 | `POST /v2/client/matches/get-match-session-results` | User Auth Guard Required | [matches-get-match-session-results-v2.md](endpoints/matches-get-match-session-results-v2.md) |
@@ -32,4 +32,6 @@
 | `POST /v2/client/party/leave` | User Auth Guard Required | [party-leave-v2.md](endpoints/party-leave-v2.md) |
 | `POST /v2/client/party/transfer-leader` | User Auth Guard Required | [party-transfer-leader-v2.md](endpoints/party-transfer-leader-v2.md) |
 | `POST /v2/client/party/update-settings` | User Auth Guard Required | [party-update-settings-v2.md](endpoints/party-update-settings-v2.md) |
+| `POST /v2/client/player/get-match-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-get-match-history-v2.md](endpoints/player-get-match-history-v2.md) |
+| `POST /v2/client/player/me/get-match-history` | Bearer Token Required (via `UseUserAuthGuard`) | [player-me-get-match-history-v2.md](endpoints/player-me-get-match-history-v2.md) |
 | `POST /v2/client/player/me/get-party-details` | User Auth Guard Required | [player-me-get-party-details-v2.md](endpoints/player-me-get-party-details-v2.md) |
