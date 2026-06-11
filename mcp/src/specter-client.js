@@ -97,6 +97,7 @@ export class SpecterClient {
       email: this.memberEmail,
       password: this.memberPassword,
     });
+    // Verified: member/sign-in returns the token as data.authToken (see backend member.controller).
     this.adminToken = json?.data?.authToken ?? json?.data?.accessToken ?? json?.data?.token ?? null;
     if (!this.adminToken) throw new Error(`Member sign-in failed: ${JSON.stringify(json?.errors ?? json)?.slice(0, 200)}`);
   }

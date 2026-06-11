@@ -60,7 +60,8 @@ To enable the create-* tools, also set:
 
 ## Notes
 
-- Admin API base URL/auth field names should be confirmed against your deployment — the client
-  reads the member token from `data.authToken`/`accessToken`/`token`, adjust if yours differs.
+- Admin defaults are verified against the production deployment: base URL
+  `https://admin.specterapp.xyz/v1`, sign-in at `member/sign-in` with `{ email, password }`,
+  member token returned as `data.authToken`. Override `SPECTER_ADMIN_URL` for staging/other envs.
 - The server creates one reusable test player (`customId: "specter-mcp-test-player"`) for the
   wallet check in `specter_verify_setup`.
