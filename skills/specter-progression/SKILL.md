@@ -28,7 +28,9 @@ POST /events/send-custom
 { "eventId": "match_finished", "customParams": { "score": 1500, "kills": 7, "won": true } }
 ```
 
-`eventId` is the event's ID as configured in the dashboard. Put gameplay values in
+`eventId` is the event's **dashboard-configured id (slug)**, e.g. `daily_streak_hit`. It is
+NOT the `event.id` UUID that `get-tasks` returns inside task objects — sending that UUID fails
+with `EventNotFoundException` (1119). Verified against staging. Put gameplay values in
 `customParams` — task rule facts are matched against custom params. `specterParams` is for
 platform-default parameters; don't put your own fields there.
 

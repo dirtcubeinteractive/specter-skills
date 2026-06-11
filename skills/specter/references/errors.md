@@ -37,6 +37,10 @@ attempts exhausted.
 ## Client implementation guidance
 
 - Treat any 429 as retryable with backoff (`retryAfterSeconds` when present, else exponential).
+- **Also treat 500 as transient and retryable with backoff.** Observed on staging: sharp
+  request bursts (tens of concurrent calls) can produce HTTP 500s before any 429 appears.
+  Rate-limit thresholds are configured per organisation/app — don't assume a fixed number;
+  keep client request rates modest (batch events, debounce reads).
 - Treat 401 `Invalid access token` as a signal to silently refresh/re-login, then retry once.
 - 402 and the subscription-429s are **developer-account** problems, not player problems — surface
   them in your own telemetry, show players a generic "service unavailable".

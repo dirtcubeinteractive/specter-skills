@@ -41,7 +41,10 @@ https://console.specterapp.xyz — the API consumes that configuration.
 | `app/get-currencies` (`get-currencies`) | api-key | Currency catalog |
 
 In wallet calls, `currencyId` is the human-readable currency ID configured in the dashboard
-(e.g. `"coins"`), not the row `uuid`.
+(e.g. `"coins"`), not the numeric `uuid` (verified on staging). Wallets are provisioned within
+seconds of signup — a freshly signed-up player returns `balance: 0`, not an error.
+`wallet/update-balance` responds with `{ balance, requested, applied, wasAdjusted,
+adjustmentReason }` — check `applied`/`wasAdjusted` rather than assuming the full amount landed.
 
 Balances change asynchronously when rewards are granted by tasks/leaderboards/tournaments —
 re-fetch after such events instead of assuming immediate credit.

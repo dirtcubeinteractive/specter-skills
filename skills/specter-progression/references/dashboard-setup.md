@@ -6,7 +6,8 @@ are fully wired up there. Example: a daily quest **"Click 100 times → 50 coins
 1. **Create the event** (Engage → Events, or App Events): add a custom event, e.g. id
    `cookie_clicked`. Add a **numeric parameter** to it, e.g. `clicks`. The event `id` here is
    exactly what the game sends as `eventId` in `events/send-custom`, and the parameter name is
-   the key inside `customParams`.
+   the key inside `customParams`. Careful: API responses (e.g. `get-tasks`) show events with a
+   UUID `id` — that UUID is NOT what `send-custom` wants; use the dashboard slug.
 2. **Create the task** (Engage → Achievements/Tasks): pick the event as trigger, set the
    parameter rule — aggregation `sum` of `clicks`, condition `greaterThanInclusive 100`.
 3. **Make it daily**: mark the task recurring with a daily schedule window. Each day is a new

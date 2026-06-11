@@ -15,9 +15,11 @@ token's embedded `projectId` must match the api-key's project — a mismatch ret
 
 ## Token lifecycle
 
-- `auth/login-*` / `auth/signup-*` → returns `accessToken` (JWT, ~1h expiry) and `entityToken`.
-- `auth/refresh-token` (api-key; send `entityToken` + the expiring access token in the **body**)
-  → new access token. Refresh proactively before expiry.
+- `auth/login-*` / `auth/signup-*` → returns `accessToken` (JWT, ~1h expiry), `entityToken`,
+  and (login-custom) a `createdAccount` boolean telling you whether this was a first login.
+- `auth/refresh-token` (api-key; send `entityToken` + `expiringAccessToken` in the **body**)
+  → `data.refreshAccessToken` with the new token. Refresh proactively before expiry.
+  (Contract verified on staging.)
 - `auth/validate-token` (Bearer) → check validity (useful on game resume).
 - Tokens are also accepted by the multiplayer Socket.io server in the connection handshake
   (`auth: { token, apiKey }`) — same JWT, no separate credential.
