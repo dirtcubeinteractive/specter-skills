@@ -1,0 +1,23 @@
+{
+  "name": "specter-skills",
+  "version": "0.1.0",
+  "description": "Claude Skills for Specter — the game backend platform. Install with `npx specter-skills init`.",
+  "keywords": ["specter", "claude", "claude-skills", "game-backend", "baas"],
+  "bin": {
+    "specter-skills": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "README.md"
+  ],
+  "scripts": {
+    "generate": "node scripts/generate-references.mjs",
+    "lint:secrets": "node scripts/lint-secrets.mjs",
+    "prepublishOnly": "node scripts/lint-secrets.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}
