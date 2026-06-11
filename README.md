@@ -7,30 +7,32 @@ multiplayer.
 
 ## Install
 
-> **Private access (current):** this package is not yet on npm. Anyone with read access to the
-> `dirtcubeinteractive/specter-skills` GitHub repo can install it straight from git — no registry
-> needed (requires GitHub auth set up locally via SSH or `gh auth login`):
->
-> ```bash
-> # interactive — pick skills and target
-> npx github:dirtcubeinteractive/specter-skills init
->
-> # everything, into this project's .claude/skills/
-> npx github:dirtcubeinteractive/specter-skills install
-> ```
->
-> Once published to npm, the same commands work without the `github:` prefix
-> (`npx specter-skills init`).
+### Via npm (once published)
 
 ```bash
+# interactive — pick skills and target
+npx specter-skills init
+
 # everything, into this project's .claude/skills/
-npx github:dirtcubeinteractive/specter-skills install
+npx specter-skills install
 
 # specific skills, globally for all your projects
-npx github:dirtcubeinteractive/specter-skills install specter specter-players --global
+npx specter-skills install specter specter-players --global
 
 # for the Agent SDK or other harnesses
-npx github:dirtcubeinteractive/specter-skills install --dir ./skills
+npx specter-skills install --dir ./skills
+```
+
+### Via GitHub (private access, current)
+
+Until it's on npm, anyone with read access to the `dirtcubeinteractive/specter-skills` repo can
+install straight from git — no registry needed (requires GitHub auth set up locally via SSH or
+`gh auth login`). Same commands, with a `github:` prefix:
+
+```bash
+npx github:dirtcubeinteractive/specter-skills init
+npx github:dirtcubeinteractive/specter-skills install
+npx github:dirtcubeinteractive/specter-skills install specter specter-players --global
 ```
 
 Then just ask Claude things like *"Add Specter email login and a gem currency to my Unity game"*
@@ -56,3 +58,17 @@ Then just ask Claude things like *"Add Specter email login and a gem currency to
 - `npm run lint:secrets` (also runs on `prepublishOnly`) blocks secrets and internal hostnames
   from being published.
 - Hand-written content lives in each skill's `SKILL.md` and non-generated `references/*.md`.
+
+### Publishing to npm
+
+The package is publish-ready (the secret linter gates `prepublishOnly`). When ready to go public:
+
+```bash
+npm run generate          # ensure references are current
+npm publish --access public
+```
+
+The `files` allowlist in `package.json` ships only `bin/`, `skills/`, and `README.md` — the
+`mcp/` server and `scripts/` are excluded (the MCP server publishes separately as
+`@specterapp/mcp` from `mcp/`). After publishing, drop the `github:` prefix from the install
+commands above.
