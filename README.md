@@ -7,18 +7,30 @@ multiplayer.
 
 ## Install
 
-```bash
-# interactive — pick skills and target
-npx specter-skills init
+> **Private access (current):** this package is not yet on npm. Anyone with read access to the
+> `dirtcubeinteractive/specter-skills` GitHub repo can install it straight from git — no registry
+> needed (requires GitHub auth set up locally via SSH or `gh auth login`):
+>
+> ```bash
+> # interactive — pick skills and target
+> npx github:dirtcubeinteractive/specter-skills init
+>
+> # everything, into this project's .claude/skills/
+> npx github:dirtcubeinteractive/specter-skills install
+> ```
+>
+> Once published to npm, the same commands work without the `github:` prefix
+> (`npx specter-skills init`).
 
+```bash
 # everything, into this project's .claude/skills/
-npx specter-skills install
+npx github:dirtcubeinteractive/specter-skills install
 
 # specific skills, globally for all your projects
-npx specter-skills install specter specter-players --global
+npx github:dirtcubeinteractive/specter-skills install specter specter-players --global
 
 # for the Agent SDK or other harnesses
-npx specter-skills install --dir ./skills
+npx github:dirtcubeinteractive/specter-skills install --dir ./skills
 ```
 
 Then just ask Claude things like *"Add Specter email login and a gem currency to my Unity game"*
