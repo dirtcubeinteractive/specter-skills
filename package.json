@@ -1,20 +1,26 @@
 {
   "name": "specter-skills",
   "version": "0.1.0",
-  "description": "Claude Skills for Specter — the game backend platform. Install with `npx specter-skills init`.",
-  "keywords": ["specter", "claude", "claude-skills", "game-backend", "baas"],
+  "description": "Claude Skills + MCP server for Specter — the game backend platform. `npx specter-skills init` installs the skills; `specter-mcp` runs the MCP server.",
+  "keywords": ["specter", "claude", "claude-skills", "mcp", "game-backend", "baas"],
   "bin": {
-    "specter-skills": "bin/cli.js"
+    "specter-skills": "bin/cli.js",
+    "specter-mcp": "mcp/src/index.js"
   },
   "files": [
     "bin",
     "skills",
+    "mcp/src",
     "README.md"
   ],
   "scripts": {
     "generate": "node scripts/generate-references.mjs",
     "lint:secrets": "node scripts/lint-secrets.mjs",
     "prepublishOnly": "node scripts/lint-secrets.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
   },
   "engines": {
     "node": ">=18"

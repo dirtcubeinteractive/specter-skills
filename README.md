@@ -1,9 +1,12 @@
 # specter-skills
 
-Claude Skills for [Specter](https://console.specterapp.xyz) — the game backend platform.
-Install these skills and Claude (Claude Code, Agent SDK) can correctly integrate Specter into
-your game: player auth, economy, missions/achievements, leaderboards, tournaments and real-time
-multiplayer.
+Claude Skills **and** MCP server for [Specter](https://console.specterapp.xyz) — the game backend
+platform. One package, two halves:
+
+- **Skills** (knowledge) — Claude reads these and writes correct Specter integration code: player
+  auth, economy, missions/achievements, leaderboards, tournaments, real-time multiplayer.
+- **MCP server** (actions) — lets Claude *call* Specter directly: inspect a project, verify a
+  setup, and (opt-in) create currencies/tasks. See [MCP server](#mcp-server) below.
 
 ## Install
 
@@ -50,6 +53,39 @@ Then just ask Claude things like *"Add Specter email login and a gem currency to
 | `specter-multiplayer` | Matchmaking, parties, match sessions, full Socket.io event contract |
 | `specter-admin` | Configure the game via admin APIs: projects, currencies, items, tasks, live-ops, members |
 
+## MCP server
+
+The same package ships an MCP server (`specter-mcp`) that lets Claude inspect and configure a
+Specter backend directly — "what currencies does my project have?", "is my setup working?",
+"create a gems currency and a daily quest". The skills teach Claude the API; the MCP server lets
+it act on the API.
+
+Add to your MCP host config (e.g. Claude Desktop `claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "specter": {
+      "command": "npx",
+      "args": ["-y", "-p", "specter-skills", "specter-mcp"],
+      "env": {
+        "SPECTER_API_KEY": "<your client api-key>",
+        "SPECTER_ENV": "staging"
+      }
+    }
+  }
+}
+```
+
+**Tools** — read-only (always on): `specter_verify_setup`, `specter_list_currencies`,
+`specter_list_items`, `specter_list_tasks`, `specter_list_leaderboards`. Mutating (opt-in via
+`SPECTER_ALLOW_MUTATIONS=true` + admin creds): `specter_create_currency`, `specter_create_task` —
+these change live game config, so they're annotated non-read-only and the host confirms first.
+
+Mutation env (verified against production): `SPECTER_ADMIN_URL` (default
+`https://admin.specterapp.xyz/v1`), `SPECTER_MEMBER_EMAIL`, `SPECTER_MEMBER_PASSWORD`,
+`SPECTER_PROJECT_ID`. Point mutations at a **staging** project first.
+
 ## Maintenance (Specter team)
 
 - Endpoint references are **generated** — `npm run generate` regenerates
@@ -68,7 +104,7 @@ npm run generate          # ensure references are current
 npm publish --access public
 ```
 
-The `files` allowlist in `package.json` ships only `bin/`, `skills/`, and `README.md` — the
-`mcp/` server and `scripts/` are excluded (the MCP server publishes separately as
-`@specterapp/mcp` from `mcp/`). After publishing, drop the `github:` prefix from the install
-commands above.
+The `files` allowlist in `package.json` ships `bin/`, `skills/`, `mcp/src/`, and `README.md`
+(generator/lint `scripts/` and `node_modules/` are excluded). Skills and the MCP server publish
+together as the single `specter-skills` package. After publishing, drop the `github:` prefix from
+the install commands above.
