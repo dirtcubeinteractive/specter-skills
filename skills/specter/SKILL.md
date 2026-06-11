@@ -89,6 +89,21 @@ curl -X POST $BASE/player/me/get-profile \
   -H "Content-Type: application/json" -d '{}'
 ```
 
+## Verify a setup
+
+To check whether a Specter project is configured correctly (api-key valid, currencies/tasks
+defined, wallets provisioning), run the bundled smoke-test:
+
+```bash
+SPECTER_API_KEY=<key> node scripts/verify.mjs --env staging
+# optional: --event <eventId> to send a test event end-to-end
+```
+
+It reports api-key validity, project info, currencies, test-player login, wallet provisioning,
+and task configuration — use it to answer "is my Specter setup working?" before debugging client
+code. For Claude to inspect/configure a project interactively (and create currencies/tasks), see
+the `@specterapp/mcp` server shipped alongside these skills.
+
 ## Platform behaviors worth knowing
 
 - **Asynchronous side-effects.** Signup initialization (wallets, default inventory, battle pass
