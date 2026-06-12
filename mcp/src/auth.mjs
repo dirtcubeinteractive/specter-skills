@@ -120,10 +120,11 @@ export async function loginViaBrowser(opts) {
 
       try {
         // Exchange the short-lived code for a long-lived tool token.
-        // api-key clears the gateway; the exchange itself needs no member auth.
+        // The exchange route is bypassed at the gateway (one-time code is the
+        // security), so an api-key is not required — include it only if present.
         const r = await fetch(`${adminBase}/member/tool-auth/exchange`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
+          headers: { 'Content-Type': 'application/json', ...(apiKey ? { 'api-key': apiKey } : {}) },
           body: JSON.stringify({ code, state }),
           signal: AbortSignal.timeout(15000),
         });

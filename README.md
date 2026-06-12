@@ -90,8 +90,8 @@ Add to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`)
       "command": "npx",
       "args": ["-y", "-p", "specter-skills", "specter-mcp"],
       "env": {
-        "SPECTER_API_KEY": "<your client api-key>",
-        "SPECTER_ENV": "staging"
+        "SPECTER_ENV": "staging",
+        "SPECTER_API_KEY": "<optional — your client api-key>"
       }
     }
   }
@@ -109,6 +109,10 @@ Add to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`)
 Mutating tools are off unless you set `SPECTER_ALLOW_MUTATIONS=true`. They change live game
 configuration, so they're flagged non-read-only and your MCP host asks for confirmation before
 each call — point them at a **staging** project first.
+
+`SPECTER_API_KEY` is **optional**: after `specter-mcp login`, the dev api-key from your sign-in is
+cached and reused for both reads and admin calls, so you don't have to configure one. Set it only
+if you want read tools to work before logging in.
 
 ### Admin sign-in (no password sharing)
 

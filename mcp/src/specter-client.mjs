@@ -22,8 +22,10 @@ export class SpecterClient {
     this.env = env.SPECTER_ENV ?? 'staging';
     this.base = CLIENT_BASES[this.env];
     if (!this.base) throw new Error(`SPECTER_ENV must be staging or production, got "${this.env}"`);
-    this.apiKey = env.SPECTER_API_KEY;
-    if (!this.apiKey) throw new Error('SPECTER_API_KEY is required');
+    // Optional: after a browser login the dev api-key from the member's sign-in is
+    // cached and used instead, so SPECTER_API_KEY is only needed for client API
+    // reads before logging in.
+    this.apiKey = env.SPECTER_API_KEY ?? null;
 
     this.adminBase = env.SPECTER_ADMIN_URL ?? ADMIN_BASES[this.env];
     this.dashboardUrl = env.SPECTER_DASHBOARD_URL ?? null;
@@ -70,9 +72,20 @@ export class SpecterClient {
     }
   }
 
+  /** The api-key for the client API gateway: explicit env, else the cached dev key. */
+  #clientApiKey() {
+    const key = this.apiKey || loadCreds(this.env)?.apiKey;
+    if (!key) {
+      throw new Error(
+        'No api-key available. Set SPECTER_API_KEY, or run `specter-mcp login` (its dev api-key is then reused).'
+      );
+    }
+    return key;
+  }
+
   /** Client API call. auth: 'none' | 'player' (test-player Bearer). */
   async client(path, body = {}, { auth = 'none' } = {}) {
-    const headers = { 'api-key': this.apiKey };
+    const headers = { 'api-key': this.#clientApiKey() };
     if (auth === 'player') {
       if (!this.playerToken) await this.#loginTestPlayer();
       headers.Authorization = `Bearer ${this.playerToken}`;
@@ -90,7 +103,7 @@ export class SpecterClient {
     const { json } = await this.#post(
       `${this.base}/auth/login-custom`,
       { customId: 'specter-mcp-test-player', createAccount: true },
-      { 'api-key': this.apiKey }
+      { 'api-key': this.#clientApiKey() }
     );
     this.playerToken = json?.data?.accessToken ?? null;
     if (!this.playerToken) throw new Error(`Test-player login failed: ${JSON.stringify(json?.errors ?? json)?.slice(0, 200)}`);
