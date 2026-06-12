@@ -32,6 +32,7 @@ if (sub === 'login') {
     const creds = await loginViaBrowser({
       env: specter.env,
       adminBase: specter.adminBase,
+      apiKey: specter.apiKey,
       dashboardUrl: specter.dashboardUrl,
       onUrl: (u) => console.log(`If the browser didn't open, visit:\n  ${u}\n`),
     });
@@ -156,6 +157,7 @@ if (specter.allowMutations) {
         const creds = await loginViaBrowser({
           env: specter.env,
           adminBase: specter.adminBase,
+      apiKey: specter.apiKey,
           dashboardUrl: specter.dashboardUrl,
           onUrl: (u) => (shownUrl = u),
         });

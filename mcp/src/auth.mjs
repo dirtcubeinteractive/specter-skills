@@ -89,11 +89,11 @@ const FAIL_HTML = (msg) => `<!doctype html><html><head><meta charset="utf-8"><ti
 
 /**
  * Run the loopback login flow. Resolves to the stored creds object.
- * @param {{env: string, adminBase: string, dashboardUrl?: string, timeoutMs?: number,
- *          onUrl?: (url:string)=>void}} opts
+ * @param {{env: string, adminBase: string, apiKey: string, dashboardUrl?: string,
+ *          timeoutMs?: number, onUrl?: (url:string)=>void}} opts
  */
 export async function loginViaBrowser(opts) {
-  const { env, adminBase, dashboardUrl, timeoutMs = 180000, onUrl } = opts;
+  const { env, adminBase, apiKey, dashboardUrl, timeoutMs = 180000, onUrl } = opts;
   const state = randomBytes(16).toString('hex');
 
   return new Promise((resolve, reject) => {
@@ -120,9 +120,10 @@ export async function loginViaBrowser(opts) {
 
       try {
         // Exchange the short-lived code for a long-lived tool token.
+        // api-key clears the gateway; the exchange itself needs no member auth.
         const r = await fetch(`${adminBase}/member/tool-auth/exchange`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
           body: JSON.stringify({ code, state }),
           signal: AbortSignal.timeout(15000),
         });

@@ -12,6 +12,11 @@ const CLIENT_BASES = {
   production: 'https://api.specterapp.xyz/v2/client',
 };
 
+const ADMIN_BASES = {
+  staging: 'https://admin.staging.specterapp.xyz/v1',
+  production: 'https://admin.specterapp.xyz/v1',
+};
+
 export class SpecterClient {
   constructor(env) {
     this.env = env.SPECTER_ENV ?? 'staging';
@@ -20,7 +25,7 @@ export class SpecterClient {
     this.apiKey = env.SPECTER_API_KEY;
     if (!this.apiKey) throw new Error('SPECTER_API_KEY is required');
 
-    this.adminBase = env.SPECTER_ADMIN_URL ?? 'https://admin.specterapp.xyz/v1';
+    this.adminBase = env.SPECTER_ADMIN_URL ?? ADMIN_BASES[this.env];
     this.dashboardUrl = env.SPECTER_DASHBOARD_URL ?? null;
     this.adminTokenEnv = env.SPECTER_ADMIN_TOKEN ?? null;
     this.memberEmail = env.SPECTER_MEMBER_EMAIL ?? null;
@@ -94,12 +99,15 @@ export class SpecterClient {
   /** Admin API call. Resolves an admin token from the best available source. */
   async admin(path, body = {}) {
     if (!this.adminToken) await this.#resolveAdminToken();
-    let r = await this.#post(`${this.adminBase}/${path}`, body, { Authorization: `Bearer ${this.adminToken}` });
+    // The admin API is behind the api-key gateway, so every call carries the
+    // project api-key (gateway) plus the member/tool Bearer (backend member auth).
+    const headers = () => ({ 'api-key': this.apiKey, Authorization: `Bearer ${this.adminToken}` });
+    let r = await this.#post(`${this.adminBase}/${path}`, body, headers());
     if (r.http === 401 || r.json?.code === 401) {
       // token expired/revoked — re-resolve once
       this.adminToken = null;
       await this.#resolveAdminToken();
-      r = await this.#post(`${this.adminBase}/${path}`, body, { Authorization: `Bearer ${this.adminToken}` });
+      r = await this.#post(`${this.adminBase}/${path}`, body, headers());
     }
     return r;
   }
@@ -118,10 +126,11 @@ export class SpecterClient {
       return;
     }
     if (this.memberEmail && this.memberPassword) {
-      const { json } = await this.#post(`${this.adminBase}/member/sign-in`, {
-        email: this.memberEmail,
-        password: this.memberPassword,
-      });
+      const { json } = await this.#post(
+        `${this.adminBase}/member/sign-in`,
+        { email: this.memberEmail, password: this.memberPassword },
+        { 'api-key': this.apiKey }
+      );
       this.adminToken = json?.data?.authToken ?? json?.data?.accessToken ?? json?.data?.token ?? null;
       if (this.adminToken) return;
     }
