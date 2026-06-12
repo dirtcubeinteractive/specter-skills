@@ -112,18 +112,8 @@ export class SpecterClient {
     }
     const creds = loadCreds(this.env);
     if (creds?.toolToken) {
-      // Mint a short-lived authToken from the long-lived tool token.
-      const { http, json } = await this.#post(`${this.adminBase}/member/tool-auth/refresh`, {
-        toolToken: creds.toolToken,
-      });
-      const authToken = json?.data?.authToken ?? json?.data?.token;
-      if (http === 200 || http === 201) {
-        if (authToken) {
-          this.adminToken = authToken;
-          return;
-        }
-      }
-      // If the backend accepts the tool token directly as a bearer, use it as-is.
+      // The backend member auth guard accepts the tool token (a type:'tool' JWT)
+      // directly as the bearer, authenticating as the member via its jti.
       this.adminToken = creds.toolToken;
       return;
     }

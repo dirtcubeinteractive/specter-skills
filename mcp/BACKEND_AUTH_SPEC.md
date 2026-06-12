@@ -1,11 +1,20 @@
-# Backend spec — "Authorize a local tool" (browser loopback auth)
+# "Authorize a local tool" (browser loopback auth) — status & remaining work
 
-This is what the **Specter dashboard + backend team** must implement so the `specter-mcp` server
-(and any future local tool) can authenticate a member **without the member sharing a password** —
-and so it works for **Google / Apple sign-in** members who have no password.
+Lets a member authorize the `specter-mcp` server (or any local tool) **without sharing a
+password** — works for **Google / Apple** sign-in members too.
 
-The MCP-server side of this flow is already implemented (`mcp/src/auth.mjs`). It just needs the
-two pieces below to exist.
+## Status
+
+- ✅ **MCP server side** — implemented (`mcp/src/auth.mjs`, `mcp/src/specter-client.mjs`).
+- ✅ **Backend endpoints** — implemented on branch `feature/mcp-tool-auth` in
+  `gamestarz_dashboard_backend` (`member/tool-auth/issue-code | exchange | list | revoke`,
+  the `member_tool_token` table + migration, and an additive `AuthGuard` change that accepts
+  `type:'tool'` JWTs). `nest build` passes; needs **security review** + the **migration applied
+  to the master DB**.
+- ⏳ **Dashboard `/authorize-tool` consent page** — *still needed* (separate frontend repo). It's
+  the only missing piece. Spec in §1 below; it just calls the already-built `issue-code` endpoint.
+
+The original full design follows for reference; the backend half is now built to it.
 
 ## The flow
 
