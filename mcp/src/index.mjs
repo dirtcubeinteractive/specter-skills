@@ -2,11 +2,13 @@
 /**
  * @specterapp/mcp — Model Context Protocol server for the Specter game backend.
  *
- * Read-only tools (always on): inspect a project's currencies, items, tasks,
- * leaderboards, wallets, and run an integration smoke-test.
- * Mutating admin tools (opt-in via SPECTER_ALLOW_MUTATIONS=true + admin creds):
- * create currencies and tasks. Every mutating tool is annotated destructive/
- * non-readonly so MCP hosts gate it behind user confirmation.
+ * Read-only tools (always on): verify_setup + list currencies, items, bundles,
+ * stores, tasks, leaderboards, tournaments, battlepasses, progression systems,
+ * markers.
+ * Mutating admin tools (opt-in via SPECTER_ALLOW_MUTATIONS=true + login): create
+ * currency, item, bundle, store, task, mission, battlepass, level system,
+ * progression marker, leaderboard, competition; schedule live-ops; grant reward.
+ * Each is annotated non-readonly so MCP hosts gate it behind user confirmation.
  *
  * Configure via env in your MCP host (e.g. claude_desktop_config.json):
  *   SPECTER_API_KEY          (required)         client api-key
@@ -93,49 +95,42 @@ server.registerTool(
   }
 );
 
-server.registerTool(
-  'specter_list_currencies',
-  {
-    title: 'List currencies',
-    description: 'List the virtual/real currencies configured in this Specter project (id, name, type).',
-    inputSchema: { limit: z.number().int().min(1).max(100).optional() },
-    annotations: { readOnlyHint: true, openWorldHint: true },
-  },
-  async ({ limit }) => toolResult(await specter.client('app/get-currencies', { limit: limit ?? 50 }))
-);
+// Data-driven list tools — each reads an app/get-* catalog endpoint (client api-key).
+const LIST_TOOLS = [
+  ['specter_list_currencies', 'app/get-currencies', 'currencies'],
+  ['specter_list_items', 'app/get-items', 'items'],
+  ['specter_list_bundles', 'app/get-bundles', 'bundles / loot boxes'],
+  ['specter_list_stores', 'app/get-stores', 'stores'],
+  ['specter_list_tasks', 'app/get-tasks', 'tasks / achievements'],
+  ['specter_list_leaderboards', 'app/get-leaderboards', 'leaderboards'],
+  ['specter_list_tournaments', 'app/get-tournaments', 'tournaments / competitions'],
+  ['specter_list_battlepasses', 'app/get-battlepasses', 'battle passes'],
+  ['specter_list_progression_systems', 'app/get-progression-systems', 'level / progression systems'],
+  ['specter_list_markers', 'app/get-markers', 'progression markers'],
+];
 
-server.registerTool(
-  'specter_list_items',
-  {
-    title: 'List items',
-    description: 'List inventory items configured in this Specter project.',
-    inputSchema: { limit: z.number().int().min(1).max(100).optional(), search: z.string().optional() },
-    annotations: { readOnlyHint: true, openWorldHint: true },
-  },
-  async ({ limit, search }) => toolResult(await specter.client('app/get-items', { limit: limit ?? 25, ...(search ? { search } : {}) }))
-);
-
-server.registerTool(
-  'specter_list_tasks',
-  {
-    title: 'List tasks',
-    description: 'List tasks/achievements/quests configured in this Specter project, including their trigger events.',
-    inputSchema: { limit: z.number().int().min(1).max(100).optional() },
-    annotations: { readOnlyHint: true, openWorldHint: true },
-  },
-  async ({ limit }) => toolResult(await specter.client('app/get-tasks', { limit: limit ?? 25, attributes: ['event'] }))
-);
-
-server.registerTool(
-  'specter_list_leaderboards',
-  {
-    title: 'List leaderboards',
-    description: 'List leaderboards configured in this Specter project.',
-    inputSchema: { limit: z.number().int().min(1).max(100).optional() },
-    annotations: { readOnlyHint: true, openWorldHint: true },
-  },
-  async ({ limit }) => toolResult(await specter.client('app/get-leaderboards', { limit: limit ?? 25 }))
-);
+for (const [name, endpoint, label] of LIST_TOOLS) {
+  server.registerTool(
+    name,
+    {
+      title: `List ${label}`,
+      description: `List the ${label} configured in this Specter project.`,
+      inputSchema: {
+        limit: z.number().int().min(1).max(100).optional(),
+        search: z.string().optional(),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: true },
+    },
+    async ({ limit, search }) =>
+      toolResult(
+        await specter.client(endpoint, {
+          limit: limit ?? 50,
+          ...(search ? { search } : {}),
+          ...(endpoint === 'app/get-tasks' ? { attributes: ['event'] } : {}),
+        })
+      )
+  );
+}
 
 // ---- admin auth + mutating tools (opt-in) ----
 
@@ -169,42 +164,172 @@ if (specter.allowMutations) {
   );
 }
 
-if (specter.allowMutations) {
-  server.registerTool(
-    'specter_create_currency',
-    {
-      title: 'Create currency (admin)',
-      description: 'Create a virtual or real-money currency in the Specter dashboard. MUTATES live game config — confirm with the user first and prefer staging.',
-      inputSchema: {
-        name: z.string().describe('Display name, e.g. "Gems"'),
-        currencyId: z.string().describe('Stable slug used by the API, e.g. "gems"'),
-        currencyType: z.enum(['soft', 'hard']).describe('soft = virtual/earned, hard = premium/purchased'),
-        projectId: z.string().optional().describe('Defaults to SPECTER_PROJECT_ID'),
-      },
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+// Data-driven create tools. Each exposes the verified required fields as typed
+// params plus a `fields` passthrough for the full schema (documented in the
+// specter-admin skill). `wrap` array-wraps the entity where the endpoint expects
+// it; `transform` renames/derives fields; `noProjectId` skips projectId.
+const CREATE_TOOLS = [
+  {
+    name: 'specter_create_currency',
+    title: 'Create currency',
+    endpoint: 'currencies/add',
+    desc: 'Create a virtual or real-money currency. Put type/code/exchangeRate etc. in `fields` (see specter-admin skill).',
+    schema: { name: z.string().describe('Display name, e.g. "Gems"'), currencyId: z.string().optional().describe('Stable slug, e.g. "gems"') },
+  },
+  {
+    name: 'specter_create_item',
+    title: 'Create item',
+    endpoint: 'items/add',
+    wrap: 'items',
+    desc: 'Create an inventory item. Properties (consumable/equippable/...), prices, unlock conditions go in `fields`.',
+    schema: { name: z.string(), typeId: z.string().describe('Item type id') },
+  },
+  {
+    name: 'specter_create_bundle',
+    title: 'Create bundle / loot box',
+    endpoint: 'bundle/create',
+    wrap: 'bundles',
+    desc: 'Create a bundle. For a gacha/loot box set isGacha + pity fields in `fields`; contents/prices go in `fields` too.',
+    schema: { name: z.string(), typeId: z.string().describe('Bundle type id') },
+  },
+  {
+    name: 'specter_create_store',
+    title: 'Create store',
+    endpoint: 'store/create',
+    wrap: 'stores',
+    desc: 'Create a store. Categories/contents/platforms go in `fields` (storeCategories[]).',
+    schema: { name: z.string(), storeId: z.string().describe('Stable slug') },
+  },
+  {
+    name: 'specter_create_task',
+    title: 'Create task / achievement',
+    endpoint: 'task/create',
+    desc: 'Create a task. businessLogic is a json-rules-engine rule; rewardDetails configures rewards (see specter-progression skill).',
+    schema: {
+      name: z.string(),
+      taskId: z.string().describe('Stable slug, e.g. "daily-click-100"'),
+      eventId: z.string().describe('Dashboard event slug that triggers this task'),
+      businessLogic: z.record(z.any()).optional().describe('e.g. {"all":[{"fact":"clicks","operator":"greaterThanInclusive","value":100}]}'),
     },
-    async ({ name, currencyId, currencyType, projectId }) =>
-      toolResult(await specter.admin('currencies/add', { name, currencyId, currencyType, projectId: projectId ?? specter.projectId }))
-  );
+    transform: (e) => {
+      const { eventId, ...rest } = e;
+      return { ...rest, customEventId: eventId };
+    },
+  },
+  {
+    name: 'specter_create_mission',
+    title: 'Create mission / task group',
+    endpoint: 'task-group/create',
+    desc: 'Create a task group. typeId: 1=mission, 2=step series, 3=time series. taskDetails is the array of tasks in the group.',
+    schema: {
+      name: z.string(),
+      taskGroupId: z.string(),
+      typeId: z.number().int().describe('1=mission, 2=step series, 3=time series'),
+      taskDetails: z.array(z.any()).describe('Tasks in the group'),
+    },
+  },
+  {
+    name: 'specter_create_battlepass',
+    title: 'Create battle pass',
+    endpoint: 'battlepass/create',
+    desc: 'Create a battle pass. tiers (free/premium rewards per tier) go in `fields`.',
+    schema: {
+      name: z.string(),
+      battlepassId: z.string(),
+      levelSystemId: z.string().describe('Level system id that drives tier progression'),
+    },
+  },
+  {
+    name: 'specter_create_level_system',
+    title: 'Create level / progression system',
+    endpoint: 'level-system/create',
+    desc: 'Create a level system. levelSystemTypeId: 1=XP-based, 2=event-based. levelDetails is the per-level config.',
+    schema: {
+      name: z.string(),
+      levelSystemTypeId: z.number().int().describe('1=XP-based, 2=event-based'),
+      levelDetails: z.array(z.any()).describe('Per-level definitions'),
+      rewardGrantScheduleType: z.string().describe("'on-completion' or 'custom'"),
+    },
+  },
+  {
+    name: 'specter_create_progression_marker',
+    title: 'Create progression marker',
+    endpoint: 'progression-marker/create',
+    desc: 'Create a progression marker (a named counter like XP or trophies).',
+    schema: { name: z.string() },
+  },
+  {
+    name: 'specter_create_leaderboard',
+    title: 'Create leaderboard',
+    endpoint: 'leaderboard/create',
+    desc: 'Create a leaderboard. prizeDistributionRule and scoring config go in `fields`.',
+    schema: {
+      leaderboardId: z.string(),
+      leaderboardOutcomeDetails: z.array(z.any()).describe('Outcome / scoring configuration'),
+      name: z.string().optional(),
+    },
+  },
+  {
+    name: 'specter_create_competition',
+    title: 'Create competition / tournament',
+    endpoint: 'competitions/create',
+    desc: 'Create a competition. competitionFormatTypeMasterId: 1=tournament, 2=instant battle. Entry prices/prizes/schedule go in `fields`.',
+    schema: {
+      name: z.string(),
+      competitionId: z.string(),
+      competitionFormatTypeMasterId: z.number().int().describe('1=tournament, 2=instant battle'),
+      isSpecialEvent: z.boolean(),
+    },
+  },
+  {
+    name: 'specter_schedule_liveops',
+    title: 'Schedule a leaderboard / competition (live-ops)',
+    endpoint: 'live-ops/schedule',
+    desc: 'Schedule a leaderboard or competition live. Provide exactly one of competitionId / leaderboardId. Recurrence config goes in `fields`.',
+    schema: {
+      startDate: z.string().describe('ISO 8601 start'),
+      endDate: z.string().describe('ISO 8601 end'),
+      competitionId: z.string().optional(),
+      leaderboardId: z.string().optional(),
+    },
+  },
+  {
+    name: 'specter_grant_reward',
+    title: 'Grant reward to a player',
+    endpoint: 'admin/rewards/grant',
+    noProjectId: true,
+    desc: 'Grant items/bundles/currencies/markers to a player. rewardDetails is an array; each entry has rewards: {items[],bundles[],currencies[],progressionMarkers[]}.',
+    schema: {
+      userId: z.string().describe('Player UUID'),
+      rewardDetails: z.array(z.any()).describe('Reward detail objects'),
+    },
+  },
+];
 
-  server.registerTool(
-    'specter_create_task',
-    {
-      title: 'Create task (admin)',
-      description: 'Create a task/achievement in the Specter dashboard. MUTATES live game config — confirm with the user first and prefer staging. Business logic uses json-rules-engine; see the specter-progression skill for rule shape.',
-      inputSchema: {
-        name: z.string(),
-        taskId: z.string().describe('Stable slug, e.g. "daily-click-100"'),
-        eventId: z.string().describe('Dashboard event slug that triggers this task'),
-        businessLogic: z.record(z.any()).describe('json-rules-engine rule, e.g. {"all":[{"fact":"clicks","operator":"greaterThanInclusive","value":100}]}'),
-        rewardDetails: z.record(z.any()).optional().describe('Reward config (currencies/items)'),
-        projectId: z.string().optional(),
+if (specter.allowMutations) {
+  for (const spec of CREATE_TOOLS) {
+    const inputSchema = { ...spec.schema };
+    if (!spec.noProjectId) inputSchema.projectId = z.string().optional().describe('Defaults to SPECTER_PROJECT_ID');
+    inputSchema.fields = z.record(z.any()).optional().describe('Any other fields for this entity — see the specter-admin skill for the full schema');
+
+    server.registerTool(
+      spec.name,
+      {
+        title: `${spec.title} (admin)`,
+        description: `${spec.desc} MUTATES live game config — confirm with the user and prefer staging.`,
+        inputSchema,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
       },
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
-    },
-    async ({ name, taskId, eventId, businessLogic, rewardDetails, projectId }) =>
-      toolResult(await specter.admin('task/create', { name, taskId, customEventId: eventId, businessLogic, rewardDetails, projectId: projectId ?? specter.projectId }))
-  );
+      async (args) => {
+        const { projectId, fields, ...rest } = args;
+        let entity = { ...rest, ...(fields || {}) };
+        if (spec.transform) entity = spec.transform(entity);
+        if (!spec.noProjectId) entity.projectId = specter.resolveProjectId(projectId);
+        const body = spec.wrap ? { [spec.wrap]: [entity] } : entity;
+        return toolResult(await specter.admin(spec.endpoint, body));
+      }
+    );
+  }
 }
 
 const transport = new StdioServerTransport();

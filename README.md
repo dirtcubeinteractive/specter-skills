@@ -103,8 +103,14 @@ Add to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`)
 | Tool | Type | Purpose |
 |---|---|---|
 | `specter_verify_setup` | read-only | Smoke-test the project: api-key, currencies, wallets, tasks |
-| `specter_list_currencies` / `_items` / `_tasks` / `_leaderboards` | read-only | Inspect configured content |
-| `specter_create_currency` / `specter_create_task` | **mutating** | Create game config (opt-in) |
+| `specter_list_*` (currencies, items, bundles, stores, tasks, leaderboards, tournaments, battlepasses, progression_systems, markers) | read-only | Inspect configured content |
+| `specter_login` | gated | Browser sign-in to authorize admin actions |
+| `specter_create_*` (currency, item, bundle, store, task, mission, battlepass, level_system, progression_marker, leaderboard, competition) | **mutating** | Create game config |
+| `specter_schedule_liveops`, `specter_grant_reward` | **mutating** | Schedule events; grant rewards to a player |
+
+Create tools take the entity's required fields as typed params plus a `fields` object for the
+full schema — Claude fills `fields` from the `specter-admin` skill, so the whole backend can be
+configured by chat. Most need `projectId` (set `SPECTER_PROJECT_ID` or pass it).
 
 Mutating tools are off unless you set `SPECTER_ALLOW_MUTATIONS=true`. They change live game
 configuration, so they're flagged non-read-only and your MCP host asks for confirmation before

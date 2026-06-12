@@ -72,6 +72,17 @@ export class SpecterClient {
     }
   }
 
+  /** projectId for admin create calls: tool arg, else SPECTER_PROJECT_ID. */
+  resolveProjectId(arg) {
+    const pid = arg || this.projectId;
+    if (!pid) {
+      throw new Error(
+        'No projectId. Pass projectId, or set SPECTER_PROJECT_ID. Find it in the dashboard (Project settings) or via the list tools.'
+      );
+    }
+    return pid;
+  }
+
   /** The api-key for the client API gateway: explicit env, else the cached dev key. */
   #clientApiKey() {
     const key = this.apiKey || loadCreds(this.env)?.apiKey;
