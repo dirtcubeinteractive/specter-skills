@@ -1,6 +1,6 @@
 {
   "name": "specter-skills",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Claude Skills + MCP server for Specter — the game backend platform. `npx specter-skills init` installs the skills; `specter-mcp` runs the MCP server.",
   "keywords": [
     "specter",
@@ -12,12 +12,14 @@
   ],
   "bin": {
     "specter-skills": "bin/cli.js",
-    "specter-mcp": "mcp/src/index.js"
+    "specter-mcp": "mcp/src/index.mjs"
   },
   "files": [
     "bin",
     "skills",
-    "mcp/src",
+    "mcp/src/index.mjs",
+    "mcp/src/auth.mjs",
+    "mcp/src/specter-client.mjs",
     "README.md"
   ],
   "scripts": {

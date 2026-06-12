@@ -19,9 +19,37 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { SpecterClient, toolResult } from './specter-client.js';
+import { SpecterClient, toolResult } from './specter-client.mjs';
+import { loginViaBrowser, clearCreds, loadCreds } from './auth.mjs';
 
 const specter = new SpecterClient(process.env);
+
+// --- CLI subcommands (run in a terminal, before/outside the MCP host) ---
+const sub = process.argv[2];
+if (sub === 'login') {
+  console.log(`Opening the Specter dashboard to authorize specter-mcp (${specter.env})…`);
+  try {
+    const creds = await loginViaBrowser({
+      env: specter.env,
+      adminBase: specter.adminBase,
+      dashboardUrl: specter.dashboardUrl,
+      onUrl: (u) => console.log(`If the browser didn't open, visit:\n  ${u}\n`),
+    });
+    console.log(`✓ Authenticated${creds.memberId ? ` as member ${creds.memberId}` : ''}. Saved to ~/.specter/credentials.json`);
+    process.exit(0);
+  } catch (e) {
+    console.error(`✗ Login failed: ${e.message}`);
+    process.exit(1);
+  }
+} else if (sub === 'logout') {
+  clearCreds(specter.env);
+  console.log(`✓ Cleared stored credentials for ${specter.env}.`);
+  process.exit(0);
+} else if (sub === 'whoami') {
+  const c = loadCreds(specter.env);
+  console.log(c ? `Authenticated for ${specter.env} (member ${c.memberId ?? '?'}, saved ${c.savedAt})` : `Not logged in for ${specter.env}. Run: specter-mcp login`);
+  process.exit(0);
+}
 
 const server = new McpServer(
   { name: 'specter', version: '0.1.0' },
@@ -108,9 +136,38 @@ server.registerTool(
   async ({ limit }) => toolResult(await specter.client('app/get-leaderboards', { limit: limit ?? 25 }))
 );
 
-// ---- mutating admin tools (opt-in) ----
+// ---- admin auth + mutating tools (opt-in) ----
 
-if (specter.allowMutations && specter.adminEnabled) {
+if (specter.allowMutations) {
+  server.registerTool(
+    'specter_login',
+    {
+      title: 'Authenticate for admin actions',
+      description: 'Opens the Specter dashboard in the browser so the member can sign in (email/password, Google, or Apple) and authorize this tool. Required once before creating currencies/tasks. No password is ever shared with the tool.',
+      inputSchema: {},
+      annotations: { readOnlyHint: false, openWorldHint: true },
+    },
+    async () => {
+      if (specter.hasAdminCredential()) {
+        return { content: [{ type: 'text', text: 'Already authenticated for admin actions.' }] };
+      }
+      let shownUrl = '';
+      try {
+        const creds = await loginViaBrowser({
+          env: specter.env,
+          adminBase: specter.adminBase,
+          dashboardUrl: specter.dashboardUrl,
+          onUrl: (u) => (shownUrl = u),
+        });
+        return { content: [{ type: 'text', text: `Authenticated${creds.memberId ? ` as member ${creds.memberId}` : ''}. You can now create currencies/tasks.` }] };
+      } catch (e) {
+        return { isError: true, content: [{ type: 'text', text: `Login failed: ${e.message}${shownUrl ? `\nYou can also open this URL manually:\n${shownUrl}` : ''}` }] };
+      }
+    }
+  );
+}
+
+if (specter.allowMutations) {
   server.registerTool(
     'specter_create_currency',
     {

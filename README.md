@@ -106,13 +106,33 @@ Add to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`)
 | `specter_list_currencies` / `_items` / `_tasks` / `_leaderboards` | read-only | Inspect configured content |
 | `specter_create_currency` / `specter_create_task` | **mutating** | Create game config (opt-in) |
 
-Mutating tools are off unless you set `SPECTER_ALLOW_MUTATIONS=true` and provide admin
-credentials. They change live game configuration, so they're flagged non-read-only and your MCP
-host asks for confirmation before each call — point them at a **staging** project first.
+Mutating tools are off unless you set `SPECTER_ALLOW_MUTATIONS=true`. They change live game
+configuration, so they're flagged non-read-only and your MCP host asks for confirmation before
+each call — point them at a **staging** project first.
 
-Admin env (defaults verified against production): `SPECTER_ADMIN_URL`
-(default `https://admin.specterapp.xyz/v1`), `SPECTER_MEMBER_EMAIL`, `SPECTER_MEMBER_PASSWORD`,
-`SPECTER_PROJECT_ID`.
+### Admin sign-in (no password sharing)
+
+Creating currencies/tasks needs a member (dashboard) sign-in. Instead of putting a password in
+config — which doesn't even exist for Google/Apple sign-in members — `specter-mcp` uses a
+**browser flow**: it opens the Specter dashboard, the member signs in there however they normally
+do (email/password, **Google**, or **Apple**), approves a consent screen, and a revocable token
+is handed back to the tool. The password/social credentials never touch the tool or Claude.
+
+Trigger it either way:
+
+- In chat, the first time Claude needs admin access it calls the `specter_login` tool → browser
+  opens → you sign in → done.
+- Or up front in a terminal: `npx -p specter-skills specter-mcp login` (also `logout`, `whoami`).
+
+The token is cached in `~/.specter/credentials.json` (file mode `600`) and reused, so you only
+sign in once. For CI / non-interactive use, set `SPECTER_ADMIN_TOKEN` instead.
+
+Env: `SPECTER_ALLOW_MUTATIONS=true`, optional `SPECTER_ADMIN_URL`
+(default `https://admin.specterapp.xyz/v1`), `SPECTER_DASHBOARD_URL`, `SPECTER_PROJECT_ID`.
+
+> The browser flow needs a small dashboard/backend piece (`/authorize-tool` + a token-exchange
+> endpoint) — see [`mcp/BACKEND_AUTH_SPEC.md`](mcp/BACKEND_AUTH_SPEC.md). Until that ships, set
+> `SPECTER_ADMIN_TOKEN`, or (password members only) `SPECTER_MEMBER_EMAIL` + `SPECTER_MEMBER_PASSWORD`.
 
 ## Requirements
 

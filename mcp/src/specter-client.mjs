@@ -1,6 +1,11 @@
 // Thin HTTP client for the Specter APIs, shared by all MCP tools.
 // Client API: api-key (+ test-player Bearer where needed).
-// Admin API: member email/password → Bearer JWT (cached, re-login on 401).
+// Admin API auth, in priority order:
+//   1. Browser login (loopback OAuth) → tool token cached in ~/.specter/credentials.json
+//   2. SPECTER_ADMIN_TOKEN env (for CI / non-interactive)
+//   3. SPECTER_MEMBER_EMAIL + _PASSWORD (legacy fallback — password members only)
+
+import { loadCreds } from './auth.mjs';
 
 const CLIENT_BASES = {
   staging: 'https://client.staging.specterapp.xyz/v2/client',
@@ -15,18 +20,26 @@ export class SpecterClient {
     this.apiKey = env.SPECTER_API_KEY;
     if (!this.apiKey) throw new Error('SPECTER_API_KEY is required');
 
-    this.adminBase = env.SPECTER_ADMIN_URL ?? null; // e.g. https://admin.specterapp.xyz/v1
+    this.adminBase = env.SPECTER_ADMIN_URL ?? 'https://admin.specterapp.xyz/v1';
+    this.dashboardUrl = env.SPECTER_DASHBOARD_URL ?? null;
+    this.adminTokenEnv = env.SPECTER_ADMIN_TOKEN ?? null;
     this.memberEmail = env.SPECTER_MEMBER_EMAIL ?? null;
     this.memberPassword = env.SPECTER_MEMBER_PASSWORD ?? null;
     this.projectId = env.SPECTER_PROJECT_ID ?? null;
     this.allowMutations = env.SPECTER_ALLOW_MUTATIONS === 'true';
 
     this.playerToken = null;
-    this.adminToken = null;
+    this.adminToken = null; // a short-lived authToken minted from a tool token / login
   }
 
+  /** True if mutating admin tools should be registered (gated, not yet authenticated). */
   get adminEnabled() {
-    return Boolean(this.adminBase && this.memberEmail && this.memberPassword);
+    return this.allowMutations;
+  }
+
+  /** Whether we already have a usable admin credential (no browser login needed). */
+  hasAdminCredential() {
+    return Boolean(this.adminTokenEnv || loadCreds(this.env)?.toolToken || (this.memberEmail && this.memberPassword));
   }
 
   async #post(url, body, headers) {
@@ -78,28 +91,53 @@ export class SpecterClient {
     if (!this.playerToken) throw new Error(`Test-player login failed: ${JSON.stringify(json?.errors ?? json)?.slice(0, 200)}`);
   }
 
-  /** Admin API call (member Bearer). */
+  /** Admin API call. Resolves an admin token from the best available source. */
   async admin(path, body = {}) {
-    if (!this.adminEnabled) {
-      throw new Error('Admin tools need SPECTER_ADMIN_URL, SPECTER_MEMBER_EMAIL and SPECTER_MEMBER_PASSWORD in the MCP server env.');
-    }
-    if (!this.adminToken) await this.#loginMember();
+    if (!this.adminToken) await this.#resolveAdminToken();
     let r = await this.#post(`${this.adminBase}/${path}`, body, { Authorization: `Bearer ${this.adminToken}` });
     if (r.http === 401 || r.json?.code === 401) {
-      await this.#loginMember();
+      // token expired/revoked — re-resolve once
+      this.adminToken = null;
+      await this.#resolveAdminToken();
       r = await this.#post(`${this.adminBase}/${path}`, body, { Authorization: `Bearer ${this.adminToken}` });
     }
     return r;
   }
 
-  async #loginMember() {
-    const { json } = await this.#post(`${this.adminBase}/member/sign-in`, {
-      email: this.memberEmail,
-      password: this.memberPassword,
-    });
-    // Verified: member/sign-in returns the token as data.authToken (see backend member.controller).
-    this.adminToken = json?.data?.authToken ?? json?.data?.accessToken ?? json?.data?.token ?? null;
-    if (!this.adminToken) throw new Error(`Member sign-in failed: ${JSON.stringify(json?.errors ?? json)?.slice(0, 200)}`);
+  // Priority: explicit env token → cached browser-login tool token → legacy email/password.
+  async #resolveAdminToken() {
+    if (this.adminTokenEnv) {
+      this.adminToken = this.adminTokenEnv;
+      return;
+    }
+    const creds = loadCreds(this.env);
+    if (creds?.toolToken) {
+      // Mint a short-lived authToken from the long-lived tool token.
+      const { http, json } = await this.#post(`${this.adminBase}/member/tool-auth/refresh`, {
+        toolToken: creds.toolToken,
+      });
+      const authToken = json?.data?.authToken ?? json?.data?.token;
+      if (http === 200 || http === 201) {
+        if (authToken) {
+          this.adminToken = authToken;
+          return;
+        }
+      }
+      // If the backend accepts the tool token directly as a bearer, use it as-is.
+      this.adminToken = creds.toolToken;
+      return;
+    }
+    if (this.memberEmail && this.memberPassword) {
+      const { json } = await this.#post(`${this.adminBase}/member/sign-in`, {
+        email: this.memberEmail,
+        password: this.memberPassword,
+      });
+      this.adminToken = json?.data?.authToken ?? json?.data?.accessToken ?? json?.data?.token ?? null;
+      if (this.adminToken) return;
+    }
+    throw new Error(
+      'Not authenticated for admin actions. Run `specter-mcp login` (opens the dashboard in your browser), or set SPECTER_ADMIN_TOKEN.'
+    );
   }
 }
 
