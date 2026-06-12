@@ -99,9 +99,11 @@ export class SpecterClient {
   /** Admin API call. Resolves an admin token from the best available source. */
   async admin(path, body = {}) {
     if (!this.adminToken) await this.#resolveAdminToken();
-    // The admin API is behind the api-key gateway, so every call carries the
-    // project api-key (gateway) plus the member/tool Bearer (backend member auth).
-    const headers = () => ({ 'api-key': this.apiKey, Authorization: `Bearer ${this.adminToken}` });
+    // The admin API is behind the api-key gateway. Prefer the dev api-key handed
+    // back by the browser login (stored with the tool token); fall back to the
+    // configured SPECTER_API_KEY. Plus the member/tool Bearer for backend auth.
+    const gatewayKey = loadCreds(this.env)?.apiKey || this.apiKey;
+    const headers = () => ({ 'api-key': gatewayKey, Authorization: `Bearer ${this.adminToken}` });
     let r = await this.#post(`${this.adminBase}/${path}`, body, headers());
     if (r.http === 401 || r.json?.code === 401) {
       // token expired/revoked — re-resolve once

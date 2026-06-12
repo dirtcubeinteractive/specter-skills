@@ -137,6 +137,9 @@ export async function loginViaBrowser(opts) {
           toolToken,
           memberId: data.memberId ?? null,
           organisationId: data.organisationId ?? null,
+          // Dev api-key from the member's sign-in, used to clear the gateway on
+          // admin calls — so the user doesn't have to configure one separately.
+          apiKey: data.apiKey ?? null,
           savedAt: new Date().toISOString(),
         };
         saveCreds(env, creds);
