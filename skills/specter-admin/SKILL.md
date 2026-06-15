@@ -11,6 +11,24 @@ description: >-
 
 # Specter Admin — configure your game via API
 
+## ⚡ First: use the Specter MCP server if it's connected
+
+If the **`specter` MCP server** is available (tools named `specter_create_currency`,
+`specter_create_item`, `specter_list_*`, `specter_login`, etc.), **use those tools** to configure
+the backend — do NOT hand-roll the raw admin HTTP calls below. The MCP server handles
+authentication for you (a one-time browser sign-in), auto-detects the project, and clears the
+gateway. The raw API reference below is for when the MCP server is *not* connected, or for
+generating standalone scripts.
+
+**Never ask the user for their dashboard email/password.** Member auth happens through a browser
+sign-in, not a pasted password. If a create/configure action needs auth:
+- With the MCP server: just call a create tool — it triggers `specter_login` (browser) when
+  needed, or tell the user to run `npx -p specter-skills specter-mcp login` once.
+- Without the MCP server: tell the user to set up the `specter` MCP server (see the package
+  README) and sign in — then ask again. Do not collect a password to call `member/sign-in`.
+
+---
+
 Everything the dashboard (https://console.specterapp.xyz) does, the admin API can do —
 useful for bulk content import, IaC-style game config, and CI pipelines.
 
@@ -23,15 +41,17 @@ integrations:
 
 ## Auth
 
-Admin endpoints are **member**-scoped (a dashboard team member, not a player):
+Admin endpoints are **member**-scoped (a dashboard team member, not a player) and send
+`Authorization: Bearer <token>`. Access is org-based with RBAC. Admin routes have **no `/client/`
+prefix** and are versioned (v1 default).
 
-```
-POST member/sign-in   { "email": "...", "password": "..." }   → Bearer JWT
-```
-
-All admin calls then send `Authorization: Bearer <token>`. Access is org-based with RBAC
-(roles + per-project access via member access configs). Admin routes have **no `/client/`
-prefix** and are versioned like client routes (v1 default; some have v2 variants).
+**How to get that token — do NOT ask the user for a password:**
+- **Preferred (MCP server):** the `specter` MCP server obtains and stores it via a one-time
+  browser sign-in (`specter_login` / `npx -p specter-skills specter-mcp login`). Email/password,
+  Google, and Apple all work, and nothing is pasted into the chat.
+- The legacy `POST member/sign-in { email, password }` exists, but only the dashboard/login UI
+  should call it. When you need admin auth, route the user through the MCP browser sign-in
+  instead of collecting credentials.
 
 ## The standard setup workflow
 
