@@ -9,7 +9,7 @@
  *   npx specter-skills update                    re-install previously installed skills
  *   npx specter-skills list                      show available + installed skills
  *   npx specter-skills mcp                        register the MCP server in Claude Desktop
- *       --project                                ...or this project's .mcp.json (Claude Code)
+ *       --code                                   ...or Claude Code (user scope — all projects)
  *       --production                              use the production environment
  */
 'use strict';
@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const readline = require('readline');
+const { spawnSync } = require('child_process');
 
 const PKG_ROOT = path.dirname(__dirname);
 const SKILLS_SRC = path.join(PKG_ROOT, 'skills');
@@ -123,10 +124,16 @@ function claudeDesktopConfigPath() {
   return path.join(os.homedir(), '.config', 'Claude', 'claude_desktop_config.json');
 }
 
-function setupMcp({ target = 'desktop', env = 'staging', allowMutations = true }) {
-  const file = target === 'project'
-    ? path.join(process.cwd(), '.mcp.json')
-    : claudeDesktopConfigPath();
+function mcpServerEntry(env, allowMutations) {
+  return {
+    command: 'npx',
+    args: ['-y', '-p', 'specter-skills', 'specter-mcp'],
+    env: { SPECTER_ENV: env, SPECTER_ALLOW_MUTATIONS: String(allowMutations) },
+  };
+}
+
+// Merge the specter server into a JSON config file without clobbering others.
+function writeJsonConfig(file, env, allowMutations) {
   let cfg = {};
   if (fs.existsSync(file)) {
     try {
@@ -137,18 +144,50 @@ function setupMcp({ target = 'desktop', env = 'staging', allowMutations = true }
     }
   }
   cfg.mcpServers = cfg.mcpServers || {};
-  cfg.mcpServers.specter = {
-    command: 'npx',
-    args: ['-y', '-p', 'specter-skills', 'specter-mcp'],
-    env: { SPECTER_ENV: env, SPECTER_ALLOW_MUTATIONS: String(allowMutations) },
-  };
+  cfg.mcpServers.specter = mcpServerEntry(env, allowMutations);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, JSON.stringify(cfg, null, 2) + '\n');
-  console.log(`✓ Specter MCP server added to ${file} (env: ${env})`);
-  if (target === 'project') console.log('  Claude Code picks up .mcp.json automatically.');
-  else console.log('  Restart Claude Desktop to load it.');
-  console.log('  The first time you ask Claude to create something, it opens a browser to sign in — no api-key or config needed.');
   return true;
+}
+
+// Claude Desktop reads one global config file.
+function setupMcpDesktop(env, allowMutations) {
+  const file = claudeDesktopConfigPath();
+  if (!writeJsonConfig(file, env, allowMutations)) return false;
+  console.log(`✓ Specter MCP added to Claude Desktop — env: ${env}`);
+  console.log(`  (${file})`);
+  console.log('  Restart Claude Desktop to load it.');
+  return true;
+}
+
+// Claude Code: register at USER scope (via the claude CLI) so it works in EVERY
+// project — not just the folder you ran this in. Falls back to a project
+// .mcp.json if the claude CLI isn't installed.
+function setupMcpCode(env, allowMutations) {
+  const json = JSON.stringify(mcpServerEntry(env, allowMutations));
+  const r = spawnSync('claude', ['mcp', 'add-json', '--scope', 'user', 'specter', json], {
+    stdio: 'pipe',
+    encoding: 'utf8',
+  });
+  if (r.status === 0) {
+    console.log(`✓ Specter MCP added to Claude Code for all projects (user scope) — env: ${env}`);
+    console.log('  Restart Claude Code; the specter tools are available in every folder.');
+    return true;
+  }
+  const file = path.join(process.cwd(), '.mcp.json');
+  if (!writeJsonConfig(file, env, allowMutations)) return false;
+  console.log(`✓ Specter MCP added to ${file} (this project only — the "claude" CLI wasn't found for a global install).`);
+  console.log('  Install Claude Code, or re-run from each project, for it to appear everywhere.');
+  return true;
+}
+
+function setupMcp({ target = 'desktop', env = 'staging', allowMutations = true }) {
+  const ok = target === 'code' ? setupMcpCode(env, allowMutations) : setupMcpDesktop(env, allowMutations);
+  if (ok) {
+    console.log('  First time you ask Claude to create something, it opens a browser to sign in once —');
+    console.log('  no api-key, project ID, or config to fill in.');
+  }
+  return ok;
 }
 
 async function init() {
@@ -173,9 +212,9 @@ async function init() {
   const wantMcp = (await ask('\nAlso set up the MCP server, so Claude can create currencies/tasks/leaderboards for you? [Y/n]: ')).trim().toLowerCase();
   let mcp = null;
   if (wantMcp !== 'n' && wantMcp !== 'no') {
-    const host = (await ask('  Set up for (1) Claude Desktop or (2) Claude Code [this project]? [1]: ')).trim();
+    const host = (await ask('  Which Claude app do you use — (1) Claude Desktop or (2) Claude Code? [1]: ')).trim();
     const e = (await ask('  Environment — (1) staging or (2) production? [1]: ')).trim();
-    mcp = { target: host === '2' ? 'project' : 'desktop', env: e === '2' ? 'production' : 'staging', allowMutations: true };
+    mcp = { target: host === '2' ? 'code' : 'desktop', env: e === '2' ? 'production' : 'staging', allowMutations: true };
   }
   rl.close();
 
@@ -188,12 +227,12 @@ async function init() {
 
 // --- arg parsing ---
 const argv = process.argv.slice(2);
-const opts = { global: false, dir: null, project: false, env: 'staging' };
+const opts = { global: false, dir: null, code: false, env: 'staging' };
 const positional = [];
 for (let i = 0; i < argv.length; i++) {
   if (argv[i] === '--global' || argv[i] === '-g') opts.global = true;
   else if (argv[i] === '--dir') opts.dir = argv[++i];
-  else if (argv[i] === '--project') opts.project = true;
+  else if (argv[i] === '--code' || argv[i] === '--project') opts.code = true;
   else if (argv[i] === '--production') opts.env = 'production';
   else if (argv[i] === '--env') opts.env = argv[++i];
   else positional.push(argv[i]);
@@ -214,8 +253,8 @@ switch (cmd) {
     list(opts);
     break;
   case 'mcp':
-    // Add the MCP server to Claude Desktop (default) or this project's .mcp.json (--project)
-    setupMcp({ target: opts.project ? 'project' : 'desktop', env: opts.env, allowMutations: true });
+    // Add the MCP server to Claude Desktop (default) or Claude Code user scope (--code)
+    setupMcp({ target: opts.code ? 'code' : 'desktop', env: opts.env, allowMutations: true });
     break;
   case '--version':
   case '-v':
@@ -223,7 +262,7 @@ switch (cmd) {
     break;
   default:
     console.log(
-      'Usage: specter-skills <init|install [names...]|update|list|mcp> [--global] [--dir <path>] [--project] [--production]'
+      'Usage: specter-skills <init|install [names...]|update|list|mcp> [--global] [--dir <path>] [--code] [--production]'
     );
     process.exit(cmd === 'help' || cmd === '--help' ? 0 : 1);
 }

@@ -139,11 +139,12 @@ no JSON editing). Or run it any time:
 # Claude Desktop
 npx specter-skills mcp
 
-# Claude Code (writes .mcp.json in the current project)
-npx specter-skills mcp --project
+# Claude Code (registers it for all your projects)
+npx specter-skills mcp --code
 ```
 
-Then restart your MCP host and the `specter` tools appear.
+Then restart your MCP host and the `specter` tools appear. (Claude Desktop and Claude Code are
+different apps with separate configs — pick the one you actually use.)
 
 <details>
 <summary>Manual setup (if you prefer to edit the config yourself)</summary>
