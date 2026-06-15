@@ -72,15 +72,39 @@ export class SpecterClient {
     }
   }
 
-  /** projectId for admin create calls: tool arg, else SPECTER_PROJECT_ID. */
-  resolveProjectId(arg) {
-    const pid = arg || this.projectId;
-    if (!pid) {
+  /**
+   * projectId for admin create calls. Priority: tool arg → SPECTER_PROJECT_ID →
+   * auto-discover from the logged-in member's organisation (no config needed).
+   */
+  async resolveProjectId(arg) {
+    if (arg) return arg;
+    if (this.projectId) return this.projectId;
+    if (this.discoveredProjectId) return this.discoveredProjectId;
+
+    const creds = loadCreds(this.env);
+    if (!creds?.organisationId) {
       throw new Error(
-        'No projectId. Pass projectId, or set SPECTER_PROJECT_ID. Find it in the dashboard (Project settings) or via the list tools.'
+        'No project selected and not signed in. Run `specter-mcp login`, or pass projectId / set SPECTER_PROJECT_ID.'
       );
     }
-    return pid;
+    const { json } = await this.admin('app/get', {
+      organisationId: creds.organisationId,
+      pageNo: 0,
+      pageSize: 100,
+    });
+    const projects = json?.data?.projectDetails ?? [];
+    if (projects.length === 1) {
+      this.discoveredProjectId = projects[0].id;
+      return this.discoveredProjectId;
+    }
+    if (projects.length === 0) {
+      throw new Error('No projects found in your organisation. Create one in the dashboard first.');
+    }
+    throw new Error(
+      `You have multiple projects — tell me which one (pass projectId). Options: ${projects
+        .map((p) => `${p.name} = ${p.id}`)
+        .join('; ')}`
+    );
   }
 
   /** The api-key for the client API gateway: explicit env, else the cached dev key. */

@@ -142,8 +142,7 @@ Add it to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.jso
       "args": ["-y", "-p", "specter-skills", "specter-mcp"],
       "env": {
         "SPECTER_ENV": "staging",
-        "SPECTER_ALLOW_MUTATIONS": "true",
-        "SPECTER_PROJECT_ID": "<your project id>"
+        "SPECTER_ALLOW_MUTATIONS": "true"
       }
     }
   }
@@ -200,6 +199,9 @@ from the dashboard. Manage the session with `specter-mcp whoami` and `specter-mc
 Mutating tools change **live game configuration**, so they're flagged non-read-only and your MCP
 host asks for confirmation before each one. **Point them at a staging project first.**
 
+Your **project is auto-detected** from your sign-in — there's no project ID to look up. (Only set
+`SPECTER_PROJECT_ID` if your organisation has several projects and you want to pin one.)
+
 ### Configuration
 
 All configuration is via env vars in your MCP host config:
@@ -208,8 +210,8 @@ All configuration is via env vars in your MCP host config:
 |---|---|---|---|
 | `SPECTER_ENV` | — | `staging` | `staging` or `production` |
 | `SPECTER_ALLOW_MUTATIONS` | — | `false` | `true` enables the create / mutate tools |
-| `SPECTER_PROJECT_ID` | for creates | — | Default project for create tools (find it in dashboard → Project settings) |
 | `SPECTER_API_KEY` | optional | — | Client api-key. **Not needed after sign-in** — the dev key from your login is reused. Set it only if you want read tools to work before signing in. |
+| `SPECTER_PROJECT_ID` | optional | — | Auto-discovered from your sign-in. Only set it if your organisation has multiple projects and you want to pin one. |
 | `SPECTER_ADMIN_TOKEN` | optional | — | For CI / non-interactive use instead of browser sign-in |
 
 ---
@@ -264,7 +266,7 @@ npx specter-skills update
 |---|---|
 | `specter-mcp: command not found` | Run it from a folder **other than** the `specter-skills` source folder (e.g. `cd ~` first). |
 | `No api-key available` | Set `SPECTER_API_KEY`, or run `specter-mcp login` (its dev key is then reused). |
-| `No projectId` on a create tool | Set `SPECTER_PROJECT_ID` or pass `projectId`. |
+| `Multiple projects` on a create tool | Tell Claude which project (it's auto-detected when you have one). |
 | Create tools don't appear | Set `SPECTER_ALLOW_MUTATIONS=true` and restart your MCP host. |
 | Browser login times out | Re-run `specter-mcp login`; if the browser didn't open, use the printed URL. |
 | Skills don't activate | Confirm they're installed (`npx specter-skills list`) and your host loads `.claude/skills/`. |

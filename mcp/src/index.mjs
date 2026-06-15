@@ -324,7 +324,7 @@ if (specter.allowMutations) {
         const { projectId, fields, ...rest } = args;
         let entity = { ...rest, ...(fields || {}) };
         if (spec.transform) entity = spec.transform(entity);
-        if (!spec.noProjectId) entity.projectId = specter.resolveProjectId(projectId);
+        if (!spec.noProjectId) entity.projectId = await specter.resolveProjectId(projectId);
         const body = spec.wrap ? { [spec.wrap]: [entity] } : entity;
         return toolResult(await specter.admin(spec.endpoint, body));
       }
