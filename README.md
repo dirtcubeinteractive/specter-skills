@@ -132,7 +132,23 @@ Specter backend directly. The skills teach Claude the API; the MCP server lets i
 
 ### Setup
 
-Add it to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`):
+**The easy way** — `npx specter-skills init` offers to set this up for you (it writes the config,
+no JSON editing). Or run it any time:
+
+```bash
+# Claude Desktop
+npx specter-skills mcp
+
+# Claude Code (writes .mcp.json in the current project)
+npx specter-skills mcp --project
+```
+
+Then restart your MCP host and the `specter` tools appear.
+
+<details>
+<summary>Manual setup (if you prefer to edit the config yourself)</summary>
+
+Add to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.json`):
 
 ```json
 {
@@ -148,9 +164,10 @@ Add it to your MCP host config (e.g. Claude Desktop's `claude_desktop_config.jso
   }
 }
 ```
+</details>
 
-Restart your MCP host and the `specter` tools appear. (Read-only tools work immediately; creating
-things needs a one-time [sign-in](#signing-in-no-password-needed).)
+Read-only tools work immediately; creating things needs a one-time
+[sign-in](#signing-in-no-password-needed) — no api-key or project ID to configure.
 
 ### Signing in (no password needed)
 
