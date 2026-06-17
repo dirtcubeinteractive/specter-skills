@@ -55,7 +55,7 @@ if (sub === 'login') {
 }
 
 const server = new McpServer(
-  { name: 'specter', version: '0.10.0' },
+  { name: 'specter', version: '0.11.0' },
   { instructions: 'Inspect and configure a Specter game backend. Read tools are safe; create-* tools mutate live game configuration — confirm with the user and prefer the staging environment.' }
 );
 
@@ -663,7 +663,11 @@ if (specter.allowMutations) {
     })
     .describe('Completion rule. e.g. {param:"wins",op:">=",value:10} = "win 10 matches"; {param:"login",op:"=",value:true,mode:"streak",count:7} = "7-day streak". Omit to complete on the first event.');
   function buildCompletion(c) {
-    if (!c) return { config: [], businessLogic: { all: [] } };
+    // No rule → businessLogic MUST be null (NOT {all:[]}). The backend's task
+    // filter (evaluateBusinessLogicFilter) treats null as "always include", but
+    // an empty {all:[]} goes to fact/value matching, finds no fact, and DROPS the
+    // task — so it would never complete. Verified live on staging.
+    if (!c) return { config: [], businessLogic: null };
     const operator = OP_MAP[c.op];
     return {
       config: [{ parameterName: c.param, operator, value: c.value, incrementalType: c.mode || 'cumulative', noOfRecords: c.count ?? 'all' }],
@@ -692,6 +696,7 @@ if (specter.allowMutations) {
     const eventId = await specter.resolveAppEventId(pid, t.event, eventType);
     const comp = buildCompletion(t.completion);
     const td = {
+      projectId: pid, // REQUIRED: inner tasks are filtered by projectId in getFilteredTaskIds; without it the task never matches an event and never completes
       name: t.name,
       taskId: t.taskId || slugify(t.name),
       rewardClaim: t.rewardClaim || groupRewardClaim || 'on-claim',
@@ -860,6 +865,46 @@ if (specter.allowMutations) {
     }
   );
 
+  // --- create match (multiplayer match template) ---
+  const MATCH_FORMAT = { single_player: 1, multi_player: 2, multi_player_team: 3 };
+  const MATCH_OUTCOME = { score: 1, completion_time: 2, finish_position: 4 };
+  server.registerTool(
+    'specter_create_match',
+    {
+      title: 'Create match template (admin)',
+      description:
+        'Create a multiplayer match template (the config a real-time session is based on). `format` is single/multi/team; `outcome` is how a winner is decided (highest score, fastest time, finish position). The game is resolved by name/slug. Matchmaking rules (team size, MMR) go in `fields`. MUTATES live game config — confirm and prefer staging.',
+      inputSchema: {
+        name: z.string(),
+        format: z.enum(['single_player', 'multi_player', 'multi_player_team']),
+        outcome: z.enum(['score', 'completion_time', 'finish_position']),
+        game: z.string().optional().describe('Game name/slug/id (defaults to the project\'s first game)'),
+        matchId: z.string().optional().describe('Stable slug (defaults to a slug of the name)'),
+        projectId: z.string().optional(),
+        fields: z.record(z.any()).optional().describe('Matchmaking rules: team size, MMR range, regions, etc.'),
+      },
+      annotations: mutAnnotations,
+    },
+    async ({ name, format, outcome, game, matchId, projectId, fields }) => {
+      try {
+        specter.clearResolveCache();
+        const pid = await specter.resolveProjectId(projectId);
+        const entity = {
+          projectId: pid,
+          name,
+          matchId: matchId || slugify(name),
+          matchFormatTypeMasterId: MATCH_FORMAT[format],
+          matchOutcomeTypeMasterId: MATCH_OUTCOME[outcome],
+          gameId: await specter.resolveGameId(pid, game),
+          ...(fields || {}),
+        };
+        return toolResult(await specter.admin('match/add', entity));
+      } catch (e) {
+        return errResult('create match', e);
+      }
+    }
+  );
+
   // --- create custom event (the trigger a task/mission listens to) ---
   server.registerTool(
     'specter_create_event',
@@ -921,7 +966,7 @@ if (specter.allowMutations) {
           .optional()
           .describe('Cadence intent, e.g. {unit:"day",frequency:1} for daily. Omit for one-time.'),
         completion: completionSchema.optional(),
-        businessLogic: z.record(z.any()).optional().describe('Advanced: raw json-rules-engine rule (overrides `completion`). Defaults from `completion`, or {"all":[]} (completes on first event fire).'),
+        businessLogic: z.record(z.any()).optional().describe('Advanced: raw json-rules-engine rule (overrides `completion`). Defaults from `completion`, or null (no condition → completes on first event fire). Note: a non-empty rule must have a `fact` matching an event param, and an empty {"all":[]} would never complete — leave null instead.'),
         projectId: z.string().optional(),
         fields: z.record(z.any()).optional().describe('Any other task fields (meta, tags, …)'),
       },

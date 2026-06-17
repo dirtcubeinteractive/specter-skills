@@ -234,6 +234,18 @@ export class SpecterClient {
     return m.id; // UUID
   }
 
+  /** Resolve a game reference (UUID, slug, or name) → game UUID. */
+  async resolveGameId(projectId, ref) {
+    if (UUID_RE.test(String(ref))) return ref;
+    const data = await this.cachedListData('game/get', { projectId, pageNo: 0, pageSize: 100 }, `games:${projectId}`);
+    const list = data.gameDetails ?? [];
+    if (!ref) return list[0]?.id; // default to the first game when unspecified
+    const needle = String(ref).toLowerCase();
+    const m = list.find((x) => x.gameId?.toLowerCase() === needle || x.name?.toLowerCase() === needle);
+    if (!m) throw new Error(`Game "${ref}" not found. Available: ${list.map((x) => x.name).join(', ') || '(none)'}`);
+    return m.id; // UUID
+  }
+
   /** Resolve a task reference (UUID, slug, or name) → task UUID. */
   async resolveTaskId(projectId, ref) {
     if (UUID_RE.test(String(ref))) return ref;

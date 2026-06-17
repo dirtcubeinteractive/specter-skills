@@ -1,6 +1,6 @@
 {
   "name": "specter-skills",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Claude Skills + MCP server for Specter — the game backend platform. `npx specter-skills init` installs the skills; `specter-mcp` runs the MCP server.",
   "keywords": [
     "specter",
@@ -30,7 +30,9 @@
     "generate:manual": "node scripts/generate-manual-references.mjs",
     "fetch:manual": "bash scripts/fetch-manual.sh",
     "generate:client": "node scripts/generate-client-references.mjs",
-    "generate:curated": "node scripts/generate-curated-references.mjs"
+    "generate:curated": "node scripts/generate-curated-references.mjs",
+    "test": "node --check mcp/src/index.mjs && node --check mcp/src/specter-client.mjs && node --check mcp/src/auth.mjs && npm run lint:secrets",
+    "verify": "node skills/specter/scripts/verify.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -39,5 +41,14 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "author": "Dirtcube Interactive",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dirtcubeinteractive/specter-skills.git"
+  },
+  "homepage": "https://github.com/dirtcubeinteractive/specter-skills#readme",
+  "bugs": {
+    "url": "https://github.com/dirtcubeinteractive/specter-skills/issues"
+  }
 }

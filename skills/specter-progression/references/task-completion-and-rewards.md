@@ -34,15 +34,20 @@ fields that must agree**:
 the param named by `parameterName`/`fact` is read from `customParams` or `specterParams` and checked
 (cumulative sums across events; streak counts consecutive passes).
 
-**Empty rule** (`config: []`, `businessLogic: {"all":[]}`) = complete on the **first** event fire
-(a "do it once" task).
+**⚠️ "Do it once" = `businessLogic: null`, NOT `{"all":[]}`.** The backend task filter
+(`evaluateBusinessLogicFilter`) treats **`null` as "always include"** (the task completes on the
+first event fire), but an **empty `{"all":[]}`** falls through to fact/value matching, finds no
+`fact`, and **silently DROPS the task** — so it would *never* complete. (Verified live on staging:
+`businessLogic: null` → completes + pending reward; `{"all":[]}` → filtered out, no reward.) For a
+**conditional** rule, the `fact` must match a parameter the event actually sends, or the task is
+likewise dropped.
 
 ### Common patterns
 | Intent | completion |
 |---|---|
-| Do it once (event fires) | `config: []`, `businessLogic: {"all":[]}` |
-| Reach a total ("score ≥ 100") | `incrementalType:"cumulative"`, op `greaterThanInclusive`, `noOfRecords:"all"` |
-| Do N times | `incrementalType:"cumulative"` (or `"streak"`), `value`/`noOfRecords` = N |
+| Do it once (event fires) | `config: []`, **`businessLogic: null`** |
+| Reach a total ("score ≥ 100") | `config:[{parameterName:"score",operator:"greaterThanInclusive",value:100,incrementalType:"cumulative",noOfRecords:"all"}]` + `businessLogic:{all:[{fact:"score",operator:"greaterThanInclusive",value:100}]}` |
+| Do N times | `incrementalType:"cumulative"` (or `"streak"`), `value`/`noOfRecords` = N (with the matching `fact`) |
 | N-day streak | `incrementalType:"streak"`, `noOfRecords: 7`, e.g. `{fact:"login",operator:"equal",value:true}` |
 
 > **MCP shortcut:** the `specter_create_task` / `_mission` / `_step_series` / `_time_series` tools
@@ -98,7 +103,34 @@ call shape was correct).
                     → reward lands in wallet/inventory; status → 'completed'
 ```
 
-> **Enrollment note:** for step 4 to fire, the **player must be enrolled** in the scheduled task
-> (the event subscribed for the project and a task instance/assignment active for that player) and
-> task processing is queue-backed (slightly async). A freshly-logged-in sandbox player may not be
-> enrolled, so completion won't trigger for them even though every call above is shape-correct.
+## 6. What it takes for step 4 to actually fire (the completion pipeline)
+
+Completion is **server-side and asynchronous** — firing the event does not synchronously grant the
+reward. When `events/send-custom` arrives, the backend (`taskValidationInit`) only proceeds if a
+task passes **`getFilteredTaskIds`**, which requires ALL of:
+
+- The task must be **live** (eligible) — `status` in the live state + `isAvailableForCurrentCycle:
+  true`. **Schedule with NO `startDate`/`endDate` to go live immediately** (`live-ops.service.ts`:
+  `if (!startDate && !endDate) → live now`). If you DO pass a `startDate`, the task sits at
+  `yet to start` until a **BullMQ scheduler worker** flips it at that time. So for "live right now",
+  call `specter_schedule_achievement` with just the ref and no dates. (Verified on staging: a
+  no-date schedule moves the task's DB `status` from `created` to **`in progress`** with
+  `isAvailableForCurrentCycle: true` — note `task/get` *displays* this live state as `"active"`,
+  which is a presentation value, not the DB `taskStatus` enum.)
+- `isAvailableForCurrentCycle: true`, `active: true`, `archive: false`
+- `customEventId` (or `defaultEventId`) = the fired event
+- **It must pass the businessLogic filter** (`evaluateBusinessLogicFilter`): `businessLogic: null`
+  always passes; a rule passes only if a `fact` in it matches a key in the fired event's params
+  (`customParams`/`specterParams`). **An empty `{"all":[]}` is DROPPED here** — the #1 reason a
+  correctly-scheduled task "doesn't complete".
+- **Mission-type groups (typeId 1) additionally** require a `UserTaskAssignment` row for the player
+  (created via the *get-task-group-status-with-cooldown* client API).
+
+If a task passes all of the above, the rule is evaluated and the `RewardHistory` row is written
+(pending for on-claim) — then the player claims it via `grant-reward-by-source`.
+
+**Verified end-to-end on staging:** task (`businessLogic: null`, on-claim) → schedule no-date (live)
+→ `events/send-custom {n:1}` → reward appears as `pending` in `get-reward-history` within seconds →
+`grant-reward-by-source` → wallet credited (0 → reward) and status flips to `completed`. The whole
+loop works — the only thing that previously blocked it was defaulting `businessLogic` to `{"all":[]}`
+instead of `null`.

@@ -227,6 +227,7 @@ from the dashboard. Manage the session with `specter-mcp whoami` and `specter-mc
 | **`specter_create_mission`** · **`_step_series`** · **`_time_series`** | The 3 grouped achievement types (pool / sequential / streak) |
 | **`specter_schedule_achievement`** · **`_stop_achievement`** · **`_delete_achievement`** | Activate / halt / delete an achievement (the create→schedule two-step) |
 | `specter_create_battlepass` · `_level_system` · `_progression_marker` | Progression content |
+| `specter_create_match` | Multiplayer match template (format / outcome / game) |
 | `specter_create_leaderboard` · `_competition` | Competitions |
 | `specter_edit_currency` · `_edit_task` · `_update_entity` | Edit existing entities (rename, retune, disable, …) |
 | `specter_schedule_liveops` | Schedule a leaderboard / competition live |

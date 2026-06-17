@@ -65,7 +65,7 @@ omitting `levelDetails` / `linkedRewardDetails` throws), so send the full shape:
   "rewardClaimOption": null,
   "customEventId": "<event UUID>",         // the event's id, NOT its slug — resolve via app-event/get/custom
   "config": [],
-  "businessLogic": { "all": [] },          // json-rules-engine rule; {"all":[]} completes on the event firing
+  "businessLogic": null,                    // null = no condition, completes on first event fire. (An empty {"all":[]} would be FILTERED OUT and never complete — use null.)
   "rewardDetails": [ { "currencyId": 1245, "quantity": 50 } ],  // currencyId = the currency's INTEGER id (from currencies/get), not the slug
   "linkedRewardDetails": [],
   "levelDetails": [],
@@ -108,7 +108,7 @@ needs exactly one of `customEventId` / `defaultEventId`.
       "name": "...", "taskId": "<slug>", "rewardClaim": "on-claim",
       "customEventId": "<event UUID>",       // OR "defaultEventId"
       "config": [],                            // ARRAY at task level
-      "businessLogic": { "all": [] },
+      "businessLogic": null,                  // null = complete on fire; or {all:[{fact:<event param>,...}]}
       "rewardDetails": [ { "currencyId": 1245, "quantity": 100 } ],
       "linkedRewardDetails": [], "isLinkedReward": false,
       "sortingOrder": 1
