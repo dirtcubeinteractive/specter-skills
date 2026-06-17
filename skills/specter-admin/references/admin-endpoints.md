@@ -20,9 +20,9 @@ All `POST`, `Authorization: Bearer <member JWT>` (from `member/sign-in`). Most t
 
 | Endpoint | Purpose | Key fields |
 |---|---|---|
-| `currencies/add` | Create currency | `projectId`, `name`, `currencyId`, `currencyType` (soft/hard), `icon`, `exchangeRate` |
+| `currencies/add` | Create currency | **required:** `projectId`, `name`, `currencyId` (slug), `type` (`virtual` \| `real`). **optional:** `description`, `code`, `rarityId`, `iconUrl`, `tags`, `meta` |
 | `currencies/edit` | Update | `id`, `projectId`, … |
-| `currencies/get` | List | paging |
+| `currencies/get` | List → `data.currenciesDetails[]` (each has integer `id`, slug `currencyId`, `type`) | `projectId`, `pageNo`, `pageSize` |
 | `currencies/get-world-currency` | Master real-world currency list | — |
 
 ## Items / bundles / stores (`inventory.controller`)
@@ -40,8 +40,8 @@ All `POST`, `Authorization: Bearer <member JWT>` (from `member/sign-in`). Most t
 
 | Endpoint | Purpose | Key fields |
 |---|---|---|
-| `task/create` | Create task/achievement | `projectId`, `name`, `taskId`, `defaultEventId` or `customEventId`, `businessLogic` (rule JSON), `config` (params/aggregation), `rewardDetails`, `levelDetails` |
-| `task/edit`, `task/get` | Update / list | |
+| `task/create` | Create task/achievement (see verified shape below) | `projectId`, `name`, `taskId`, `customEventId` (the event's **UUID**, not its slug), `rewardClaim`, `businessLogic`, `config`, `rewardDetails`, `linkedRewardDetails`, `levelDetails` |
+| `task/edit`, `task/get` | Update / list → `data.tasks[]` | |
 | `task/delete` ⚠ | Soft-delete task | `id`, `projectId` |
 | `task-group/create` | Mission / step-series / time-series | `projectId`, `name`, `taskGroupId`, `typeId` (1=mission, 2=step series, 3=time series), `taskDetails[]`, `rewardDetails`, `noOfMissionsPerCycle` |
 | `task-group/edit`, `task-group/get` | Update / list | |
@@ -49,6 +49,109 @@ All `POST`, `Authorization: Bearer <member JWT>` (from `member/sign-in`). Most t
 | `task/schedule`, `task/stop` | Activate / stop a task | `taskId`, `startDate`, `endDate`, `recurrence` |
 | `task-group/schedule`, `task-group/stop` | Activate / stop a group | `taskGroupId`, dates, `cycleType` |
 | `admin/rewards/grant` | Grant rewards to a user directly | `userId`, `rewardDetails` |
+
+### Verified `task/create` request shape
+
+A task tied to a custom event, granting currency, recurring daily. All of the
+fields below are required by the controller (it reads `.length` on the arrays —
+omitting `levelDetails` / `linkedRewardDetails` throws), so send the full shape:
+
+```json
+{
+  "projectId": "<uuid>",
+  "name": "Daily Streak Reward",
+  "taskId": "daily_streak_reward",
+  "rewardClaim": "on-claim",              // "automatic" | "on-claim"
+  "rewardClaimOption": null,
+  "customEventId": "<event UUID>",         // the event's id, NOT its slug — resolve via app-event/get/custom
+  "config": [],
+  "businessLogic": { "all": [] },          // json-rules-engine rule; {"all":[]} completes on the event firing
+  "rewardDetails": [ { "currencyId": 1245, "quantity": 50 } ],  // currencyId = the currency's INTEGER id (from currencies/get), not the slug
+  "linkedRewardDetails": [],
+  "levelDetails": [],
+  "isLinkedReward": false,
+  "isLinkedRewardSameAsGeneralRewards": false,
+  "isRecurring": true,                     // for recurrence, also send:
+  "intervalUnitId": 1,                     // 1=day, 2=week, 3=month, 4=year, 7=minute, 8=hour
+  "recurrenceFrequency": 1
+}
+```
+
+Item/bundle/marker rewards use the same `rewardDetails[]` entries with `itemId` /
+`bundleId` / `rewardSetId` (UUIDs) or `progressionMarkerId` (INTEGER) instead of `currencyId`.
+
+> **Interval units (recurrence)** — `intervalUnitId` (task/group scheduling) and
+> `stageIntervalUnitId` (time-series) share one table (`leaderboardIntervals` seed):
+> **1=day, 2=week, 3=month, 4=year, 5=all_time, 6=custom, 7=minute, 8=hour.**
+
+### Achievements — the four types
+
+There are four achievement shapes across two endpoints. A **single task** is `task/create`
+(above). **Mission / step-series / time-series** are all `task-group/create`, differing by
+`typeId` and a few type-specific fields. All four share the same controller-enforced scaffolding
+(present-but-empty arrays; `.length` is read). **Critical:** group-level `config` is `{}` (object),
+but each inner `taskDetails[].config` is `[]` (array) — same as a single task. Each inner task
+needs exactly one of `customEventId` / `defaultEventId`.
+
+```jsonc
+// task-group/create — common envelope
+{
+  "projectId": "<uuid>", "name": "...", "taskGroupId": "<slug>",
+  "typeId": 1,                       // 1=mission, 2=step-series, 3=time-series
+  "rewardClaim": "on-claim",         // group default, inherited by tasks
+  "config": {},                       // OBJECT at group level
+  "rewardDetails": [ { "currencyId": 1245, "quantity": 500 } ],  // group bonus (may be [])
+  "levelDetails": [], "linkedRewardDetails": [],
+  "isLinkedRewardSameAsGeneralRewards": false,
+  "taskDetails": [
+    {
+      "name": "...", "taskId": "<slug>", "rewardClaim": "on-claim",
+      "customEventId": "<event UUID>",       // OR "defaultEventId"
+      "config": [],                            // ARRAY at task level
+      "businessLogic": { "all": [] },
+      "rewardDetails": [ { "currencyId": 1245, "quantity": 100 } ],
+      "linkedRewardDetails": [], "isLinkedReward": false,
+      "sortingOrder": 1
+    }
+  ]
+  // + type-specific fields below
+}
+```
+
+| Type | `typeId` | Extra fields |
+|---|---|---|
+| **Mission** (rotating pool) | 1 | `noOfMissionsPerCycle` (int, how many of the pool are active per cycle), `missionSequenceOrder` (`random` \| `sequence`, default `random`) |
+| **Step series** (sequential) | 2 | none — `taskDetails[].sortingOrder` (1,2,3…) defines the unlock order |
+| **Time series** (streak) | 3 | `stageLength` (int window count, e.g. 7), `stageIntervalUnitId` (int, the interval map above — e.g. 1 for days), `seriesResetMiss` (bool), `seriesResetEnd` (bool) |
+
+**Lifecycle:** `*/create` returns `status: created` — NOT live. Activate via `task/schedule`
+(`{taskId, startDate?, endDate?, scheduleType:'normal'|'recurring', intervalUnitId?,
+recurrenceFrequency?, recurrenceCount?, timezone?}`) or `task-group/schedule` (`{taskGroupId, …}`).
+`task/stop` / `task-group/stop` (`{taskId}`/`{taskGroupId}`) halt; `task/delete` /
+`task-group/delete` (`{projectId, ids:[…]}`) soft-delete.
+
+**The completion rule (`businessLogic` + `config`) — the "Rule Engine".** A task completes when
+its trigger event fires AND its rule passes. The dashboard "Rule Engine" maps onto the API's
+`businessLogic` (json-rules-engine): combine conditions on the event's **parameters** —
+**States** (categorical: operators `is` / `is not`) and **Statistics** (numeric: `=`, `>`, `<`,
+`>=`, `<=`) — with **AND → `all`**, **OR → `any`**, and arbitrary nesting. `{"all":[]}` means "no
+extra condition — complete as soon as the event fires once". Example: *score ≥ 1000 AND (state is
+Werewolf OR state is Vampire)* → `{"all":[{...score ≥ 1000...},{"any":[{...Werewolf...},{...Vampire...}]}]}`.
+Conceptual walkthrough + parameter setup: specter-progression
+`references/manual/engage__achievements__tasks__task-rule-engine.md` and
+`…__build__events__event-parameters.md`.
+
+## Custom events (`app-events.controller`)
+
+| Endpoint | Purpose | Key fields |
+|---|---|---|
+| `app-event/add/custom` | Create a custom event | `projectId`, `name`, `eventId` (slug), params |
+| `app-event/get/custom` | List custom events → `data.appEventDetails[]` (each has `id` = UUID, `eventId` = slug, `name`) | `projectId`, `pageNo`, `pageSize` |
+| `app-event/get/default` | List default events | `projectId` |
+
+> To set a task's `customEventId`, list events with `app-event/get/custom` and use
+> the matching entry's **`id`** (UUID) — the dashboard "event id" you see is the
+> slug (`eventId`), which is NOT what `task/create` wants.
 
 ## Battle pass (`battlepass.controller`)
 

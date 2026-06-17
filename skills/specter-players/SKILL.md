@@ -88,3 +88,19 @@ Reads: `player/me/get-friends`, `player/me/get-pending-friend-requests`,
 Request DTOs, optional `attributes`, and response examples for every endpoint:
 [references/endpoints-index.md](references/endpoints-index.md)
 Working client code: [examples/javascript.md](examples/javascript.md), [examples/unity-csharp.md](examples/unity-csharp.md)
+
+
+## Product manual (concepts & terminology)
+
+The Specter **user manual** (the same docs game designers read in the dashboard) is bundled in
+[references/manual-index.md](references/manual-index.md) — read it to understand the CONCEPTS and
+intent behind this domain (what each type/feature means, how dashboard workflows map to the API),
+then pair it with the endpoint references for exact request shapes.
+
+
+## Client (v2) API — what you call FROM your game
+
+The **game-side** endpoints (all `POST /v2/client/*`, authed with the project api-key + a player
+access token for player-scoped calls) are indexed with full request DTOs + auth in
+[references/client-api-index.md](references/client-api-index.md). Use these for code that ships in
+the game/app. **Never call the `/v1/*` admin API from game code** — that's dashboard-only.

@@ -92,3 +92,23 @@ All 21 endpoint DTOs and response examples: [references/endpoints-index.md](refe
 Task rule JSON semantics: [references/task-rules.md](references/task-rules.md)
 Console walkthrough (event → task → reward, end-to-end verify): [references/dashboard-setup.md](references/dashboard-setup.md)
 Working client code: [examples/javascript.md](examples/javascript.md)
+
+
+## Product manual (concepts & terminology)
+
+The Specter **user manual** (the same docs game designers read in the dashboard) is bundled in
+[references/manual-index.md](references/manual-index.md) — read it to understand the CONCEPTS and
+intent behind this domain (what each type/feature means, how dashboard workflows map to the API),
+then pair it with the endpoint references for exact request shapes.
+
+
+## Client (v2) API — what you call FROM your game
+
+The **game-side** endpoints (all `POST /v2/client/*`, authed with the project api-key + a player
+access token for player-scoped calls) are indexed with full request DTOs + auth in
+[references/client-api-index.md](references/client-api-index.md). Use these for code that ships in
+the game/app. **Never call the `/v1/*` admin API from game code** — that's dashboard-only.
+
+## Task completion rules + reward claim flow
+
+How a task actually COMPLETES (the coupled `config[]` + `businessLogic` rule, operators, cumulative/streak modes) and how its reward is CLAIMED (automatic vs on-claim, pending rewards via `get-reward-history`, claiming via `grant-reward-by-source`): [references/task-completion-and-rewards.md](references/task-completion-and-rewards.md). Verified against the backend.

@@ -21,6 +21,12 @@ Two surfaces work together:
 A correct integration connects the socket **first**, then triggers REST actions, and reacts to
 socket events. Match configurations (team size, MMR rules, regions) are defined in the dashboard.
 
+> **Complete real-time event contract** — the exact handshake, namespaces (`/` and
+> `/notifications`), room conventions, and every client→server / server→client event with its
+> payload across all gateways (matchmaking, match, party, group, online-presence, reward
+> notifications): [references/realtime-socketio.md](references/realtime-socketio.md). This is the
+> authoritative source for event names/payloads (they're not in any REST/OpenAPI doc).
+
 ## Connecting
 
 ```ts
@@ -92,3 +98,19 @@ engine keeps them on the same side. Details: [references/parties.md](references/
 REST endpoint DTOs: [references/endpoints-index.md](references/endpoints-index.md)
 WS contract: [references/ws-events.md](references/ws-events.md)
 Working client code: [examples/javascript.md](examples/javascript.md)
+
+
+## Product manual (concepts & terminology)
+
+The Specter **user manual** (the same docs game designers read in the dashboard) is bundled in
+[references/manual-index.md](references/manual-index.md) — read it to understand the CONCEPTS and
+intent behind this domain (what each type/feature means, how dashboard workflows map to the API),
+then pair it with the endpoint references for exact request shapes.
+
+
+## Client (v2) API — what you call FROM your game
+
+The **game-side** endpoints (all `POST /v2/client/*`, authed with the project api-key + a player
+access token for player-scoped calls) are indexed with full request DTOs + auth in
+[references/client-api-index.md](references/client-api-index.md). Use these for code that ships in
+the game/app. **Never call the `/v1/*` admin API from game code** — that's dashboard-only.

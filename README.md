@@ -198,21 +198,46 @@ from the dashboard. Manage the session with `specter-mcp whoami` and `specter-mc
 
 | Tool | Purpose |
 |---|---|
-| `specter_verify_setup` | Smoke-test the project: api-key, currencies, wallets, tasks |
+| `specter_verify_setup` | Smoke-test the project: auth, currencies, events, tasks |
 | `specter_list_currencies` · `_items` · `_bundles` · `_stores` | Inspect economy content |
+| `specter_list_events` | List custom events (with their ids) that trigger tasks |
 | `specter_list_tasks` · `_leaderboards` · `_tournaments` · `_battlepasses` | Inspect progression & competitions |
 | `specter_list_progression_systems` · `_markers` | Inspect level systems & markers |
+
+> Read tools use your browser sign-in (run `specter_login` once) — no separate api-key to configure.
+
+**Client / runtime** — act as a sandboxed test player to exercise the game-facing `/v2/client` API and **prove your config works**:
+
+| Tool | Purpose |
+|---|---|
+| `specter_get_player_state` | Read the test player's tasks, wallet, and inventory |
+| `specter_send_event` | Fire a custom event (the same call your game makes) to trigger achievements |
+| `specter_test_achievement` | End-to-end: read status → fire the event → re-read → report whether the task progressed |
+| `specter_get_reward_history` · `specter_claim_reward` | List pending rewards, and claim on-claim task rewards (grant-reward-by-source) |
+| `specter_generate_client_code` | Generate ready-to-paste game code (JS or Unity C#) wired with your real api-key + event slug |
 
 **Mutating** — opt-in (`SPECTER_ALLOW_MUTATIONS=true`), gated behind your confirmation:
 
 | Tool | Creates / does |
 |---|---|
 | `specter_create_currency` · `_item` · `_bundle` · `_store` | Economy content |
-| `specter_create_task` · `_mission` · `_battlepass` · `_level_system` · `_progression_marker` | Progression content |
+| `specter_create_currency_conversion` · `_currency_policy` | Exchange rates + balance/decay/earning-cap policies |
+| `specter_create_event` | A custom event that triggers achievements |
+| **`specter_create_task`** | A single-objective achievement |
+| **`specter_create_mission`** · **`_step_series`** · **`_time_series`** | The 3 grouped achievement types (pool / sequential / streak) |
+| **`specter_schedule_achievement`** · **`_stop_achievement`** · **`_delete_achievement`** | Activate / halt / delete an achievement (the create→schedule two-step) |
+| `specter_create_battlepass` · `_level_system` · `_progression_marker` | Progression content |
 | `specter_create_leaderboard` · `_competition` | Competitions |
+| `specter_edit_currency` · `_edit_task` · `_update_entity` | Edit existing entities (rename, retune, disable, …) |
 | `specter_schedule_liveops` | Schedule a leaderboard / competition live |
 | `specter_grant_reward` | Grant items / currencies to a player |
+| `specter_admin_call` · `specter_client_call` | **Escape hatches** — call *any* `/v1` admin or `/v2/client` endpoint that lacks a dedicated tool (match config, members, games, reward-sets, tags, friends, purchases, …), using the bundled API references for the shape |
 | `specter_login` | Browser sign-in (above) |
+
+The achievement tools resolve friendly names for you — pass `event` as an event slug/name,
+`rewards` as `[{currency:"gems", quantity:50}]` (or `item`/`bundle`/`marker`), and the tool
+resolves them to the right ids. Creating an achievement does **not** make it live — call
+`specter_schedule_achievement` to activate it.
 
 Mutating tools change **live game configuration**, so they're flagged non-read-only and your MCP
 host asks for confirmation before each one. **Point them at a staging project first.**

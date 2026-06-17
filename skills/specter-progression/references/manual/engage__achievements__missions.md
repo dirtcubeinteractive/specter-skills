@@ -1,0 +1,3 @@
+# Missions
+
+Missions in Specter are designed to boost player engagement by grouping tasks into daily, weekly, or static categories. These missions adapt to player routines, with daily and weekly missions offering new challenges on a regular basis, while static missions remain constant, ideal for guiding new players or serving as tutorial steps. This approach ensures active participation and supports varied gameplay experiences, from quick daily activities to foundational steps for newcomers. Through missions, Specter provides a structured way to engage players, turning every task into an opportunity for deeper involvement and skill development.

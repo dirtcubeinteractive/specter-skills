@@ -1,6 +1,6 @@
 {
   "name": "specter-skills",
-  "version": "0.4.1",
+  "version": "0.10.0",
   "description": "Claude Skills + MCP server for Specter — the game backend platform. `npx specter-skills init` installs the skills; `specter-mcp` runs the MCP server.",
   "keywords": [
     "specter",
@@ -23,9 +23,14 @@
     "README.md"
   ],
   "scripts": {
-    "generate": "node scripts/generate-references.mjs",
+    "generate": "node scripts/generate-references.mjs && node scripts/generate-admin-references.mjs && node scripts/generate-client-references.mjs && node scripts/generate-manual-references.mjs && node scripts/generate-curated-references.mjs",
     "lint:secrets": "node scripts/lint-secrets.mjs",
-    "prepublishOnly": "node scripts/lint-secrets.mjs"
+    "prepublishOnly": "node scripts/lint-secrets.mjs",
+    "generate:admin": "node scripts/generate-admin-references.mjs",
+    "generate:manual": "node scripts/generate-manual-references.mjs",
+    "fetch:manual": "bash scripts/fetch-manual.sh",
+    "generate:client": "node scripts/generate-client-references.mjs",
+    "generate:curated": "node scripts/generate-curated-references.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
