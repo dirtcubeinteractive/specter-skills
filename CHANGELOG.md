@@ -3,6 +3,14 @@
 All notable changes to `specter-skills`. This package ships **Claude Skills** (knowledge) + an
 **MCP server** (`specter-mcp`) for the Specter game backend.
 
+## 0.11.1
+
+- **MIT license** — the client/skills package is now MIT (was `UNLICENSED`); added `LICENSE`.
+- **MCP registry listing** — added `server.json` (official MCP Registry manifest) and `mcpName` in
+  package.json so the registry can verify npm-package ownership. Pins the `specter-mcp` binary via
+  `npx -p specter-skills specter-mcp` (the package ships two bins).
+- Scrubbed a sample api-key from the bundled admin OpenAPI spec example.
+
 ## 0.11.0
 
 - **FIX (mission / step-series / time-series completion):** inner `taskDetails[]` now carry

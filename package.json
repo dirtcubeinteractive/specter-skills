@@ -1,6 +1,6 @@
 {
   "name": "specter-skills",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Claude Skills + MCP server for Specter — the game backend platform. `npx specter-skills init` installs the skills; `specter-mcp` runs the MCP server.",
   "keywords": [
     "specter",
@@ -50,5 +50,6 @@
   "homepage": "https://github.com/dirtcubeinteractive/specter-skills#readme",
   "bugs": {
     "url": "https://github.com/dirtcubeinteractive/specter-skills/issues"
-  }
+  },
+  "mcpName": "io.github.dirtcubeinteractive/specter-skills"
 }

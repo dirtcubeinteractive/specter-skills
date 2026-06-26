@@ -1,59 +1,74 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.dirtcubeinteractive/specter-skills",
-  "description": "Build your game backend by talking to your AI assistant. Inspect and configure Specter — the game backend platform — directly from chat: players, economy, progression, leaderboards, tournaments, battle passes, and real-time multiplayer.",
-  "status": "active",
-  "version": "0.11.0",
+  "description": "Configure a Specter game backend from chat: economy, progression, leaderboards, multiplayer.",
   "repository": {
     "url": "https://github.com/dirtcubeinteractive/specter-skills",
     "source": "github"
   },
   "websiteUrl": "https://console.specterapp.xyz",
+  "version": "0.11.1",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "specter-skills",
-      "version": "0.11.0",
-      "transport": { "type": "stdio" },
+      "version": "0.11.1",
+      "transport": {
+        "type": "stdio"
+      },
       "runtimeHint": "npx",
       "runtimeArguments": [
-        { "type": "named", "name": "-y", "value": "" },
-        { "type": "named", "name": "-p", "value": "specter-skills" }
+        {
+          "type": "named",
+          "name": "-y",
+          "value": ""
+        },
+        {
+          "type": "named",
+          "name": "-p",
+          "value": "specter-skills"
+        }
       ],
       "packageArguments": [
-        { "type": "positional", "value": "specter-mcp" }
+        {
+          "type": "positional",
+          "value": "specter-mcp"
+        }
       ],
       "environmentVariables": [
         {
           "name": "SPECTER_ENV",
           "description": "Target environment: 'staging' or 'production'",
-          "default": "staging",
+          "format": "string",
           "isRequired": false,
           "isSecret": false
         },
         {
           "name": "SPECTER_ALLOW_MUTATIONS",
           "description": "Set 'true' to enable the create/mutate tools (gated behind confirmation)",
-          "default": "false",
+          "format": "string",
           "isRequired": false,
           "isSecret": false
         },
         {
           "name": "SPECTER_API_KEY",
           "description": "Client api-key. Not needed after browser sign-in (the dev key from login is reused)",
+          "format": "string",
           "isRequired": false,
           "isSecret": true
         },
         {
           "name": "SPECTER_PROJECT_ID",
           "description": "Auto-detected from sign-in. Set only to pin one project when your org has several",
+          "format": "string",
           "isRequired": false,
           "isSecret": false
         },
         {
           "name": "SPECTER_ADMIN_TOKEN",
           "description": "Admin token for CI / non-interactive use instead of browser sign-in",
+          "format": "string",
           "isRequired": false,
           "isSecret": true
         }
