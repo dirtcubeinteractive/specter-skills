@@ -1,0 +1,9 @@
+node_modules
+.git
+.gitignore
+mcp-publisher
+*.tar.gz
+*.tgz
+*.bundle
+.DS_Store
+npm-debug.log*
