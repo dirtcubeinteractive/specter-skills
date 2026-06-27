@@ -1,0 +1,28 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      SPECTER_ENV:
+        type: string
+        default: production
+        description: "Target environment: staging or production"
+      SPECTER_ALLOW_MUTATIONS:
+        type: string
+        default: "false"
+        description: "Set 'true' to enable the create/mutate tools (confirmation-gated)"
+      SPECTER_API_KEY:
+        type: string
+        description: "Client api-key (optional; not needed after browser sign-in)"
+      SPECTER_PROJECT_ID:
+        type: string
+        description: "Pin a project when your org has several (optional)"
+      SPECTER_ADMIN_TOKEN:
+        type: string
+        description: "Admin token for CI / non-interactive use (optional)"
+    required: []
+  commandFunction: |-
+    (config) => ({ command: 'npx', args: ['-y', '-p', 'specter-skills', 'specter-mcp'], env: { ...config } })
+  exampleConfig:
+    SPECTER_ENV: production
+    SPECTER_ALLOW_MUTATIONS: "true"
